@@ -1,0 +1,74 @@
+{
+  "name": "aster-mac",
+  "version": "4.3.0",
+  "private": true,
+  "description": "Aster for macOS — a native-feeling desktop client for the Aster AI workspace",
+  "author": "Aster",
+  "license": "MIT",
+  "main": "dist-electron/electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:electron\"",
+    "dev:renderer": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "dev:electron": "wait-on tcp:127.0.0.1:5173 && npm run build:electron && VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:renderer": "vite build",
+    "build": "npm run build:electron && npm run build:renderer",
+    "start": "npm run build && electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "dist": "npm run build && electron-builder --mac dir",
+    "dist:dmg": "npm run build && electron-builder --mac dmg"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.18.2",
+    "highlight.js": "^11.11.1",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "rehype-highlight": "^7.0.0",
+    "remark-gfm": "^4.0.0",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.11",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.adong.aster.mac",
+    "productName": "Aster",
+    "copyright": "Copyright © 2026 Aster",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.icns",
+      "identity": null,
+      "target": [
+        "dir"
+      ],
+      "darkModeSupport": true,
+      "minimumSystemVersion": "12.0"
+    },
+    "asar": true,
+    "electronDist": "node_modules/electron/dist"
+  }
+}
