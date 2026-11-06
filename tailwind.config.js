@@ -6,9 +6,9 @@ module.exports = {
     extend: {
       colors: {
         clay: {
-          DEFAULT: '#d97757',
-          hover: '#cc5a36',
-          light: '#fbf3ef',
+          DEFAULT: 'rgb(var(--aster-accent-rgb) / <alpha-value>)',
+          hover: 'var(--cds-clay-hover)',
+          light: 'var(--cds-clay-light)',
           dark: '#e08264',
         },
         surface: {

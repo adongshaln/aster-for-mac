@@ -1,4 +1,5 @@
 @import './cds-theme.css';
+@import './aster-theme.css';
 
 @tailwind base;
 @tailwind components;
@@ -7,15 +8,15 @@
 :root {
   --app-sidebar-width: 264px;
   --app-content-max: 780px;
-  --app-vibrancy: rgba(249, 249, 247, 0.88);
-  --app-vibrancy-strong: rgba(252, 252, 251, 0.95);
-  --app-sidebar: rgba(244, 244, 241, 0.84);
+  --app-vibrancy: var(--aster-surface);
+  --app-vibrancy-strong: var(--cds-surface-2);
+  --app-sidebar: var(--aster-canvas);
 }
 
 .dark {
-  --app-vibrancy: rgba(15, 15, 14, 0.90);
-  --app-vibrancy-strong: rgba(21, 21, 20, 0.95);
-  --app-sidebar: rgba(18, 18, 17, 0.88);
+  --app-vibrancy: var(--aster-surface);
+  --app-vibrancy-strong: var(--cds-surface-2);
+  --app-sidebar: var(--aster-canvas);
 }
 
 * {
@@ -156,7 +157,7 @@ button {
 }
 
 .dark .composer-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--cds-text-muted);
 }
 
 /* Message column and reading rhythm */
@@ -212,9 +213,10 @@ button {
 
 /* Markdown */
 .markdown-body {
+  font-family: ui-serif, 'New York', Georgia, 'Songti SC', STSong, serif;
   color: var(--cds-text-primary);
-  font-size: 14.5px;
-  line-height: 1.78;
+  font-size: 16px;
+  line-height: 1.75;
   letter-spacing: -0.003em;
   user-select: text;
   word-break: break-word;
@@ -612,7 +614,7 @@ button {
 }
 
 .dark .cds-hint {
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--cds-text-muted);
 }
 
 .kbd {

@@ -15,7 +15,9 @@ import os from 'node:os'
 import path from 'node:path'
 import type { AppConfig, ChatRequest, ImageRequest, SaveAttachmentInput, ThemeMode } from '../shared/types'
 import { fetchModels, generateImage, readAttachmentMime, streamChat, type ChatEmitter } from './api'
-import { fetchSkillFromGitHubUrl } from './tools'
+import { installSkillFromUrl } from './skills'
+import { waitForInteraction } from './async'
+import { streamHarness, SDK_VERSION } from './harness'
 import {
   appDataDir,
   attachmentsDir,
@@ -46,6 +48,8 @@ protocol.registerSchemesAsPrivileged([
 
 let mainWindow: BrowserWindow | null = null
 const activeRequests = new Map<string, AbortController>()
+const requestConversations = new Map<string, string>()
+const requestCompletions = new Map<string, Promise<void>>()
 const pendingApprovals = new Map<string, (decision: 'allow_once' | 'always_allow' | 'deny') => void>()
 const pendingQuestions = new Map<string, (answers: Record<string, string>) => void>()
 
@@ -202,19 +206,18 @@ function registerIpc(): void {
 
     const controller = new AbortController()
     activeRequests.set(request.requestId, controller)
+    requestConversations.set(request.requestId, request.conversationId ?? '')
     const sender = event.sender
     const emit: ChatEmitter = (payload) => {
       if (sender.isDestroyed()) return
       sender.send('chat:event', { requestId: request.requestId, ...payload })
     }
 
-    void streamChat(profile, getApiKey(profile.id), request, emit, controller.signal, {
-      requestApproval: (callId) => new Promise(resolve => {
-        pendingApprovals.set(`${request.requestId}:${callId}`, resolve)
-      }),
-      requestAskUser: (callId) => new Promise(resolve => {
-        pendingQuestions.set(`${request.requestId}:${callId}`, resolve)
-      }),
+    const injectionActive = request.injectionEntries?.some(entry => entry.enabled && entry.content.trim())
+    const run = !injectionActive && (request.harnessToolsEnabled ?? true) ? streamHarness : streamChat
+    const completion = run(profile, getApiKey(profile.id), request, emit, controller.signal, {
+      requestApproval: (callId) => waitForInteraction(pendingApprovals, `${request.requestId}:${callId}`, controller.signal),
+      requestAskUser: (callId) => waitForInteraction(pendingQuestions, `${request.requestId}:${callId}`, controller.signal),
     })
       .catch((error: unknown) => {
         if (controller.signal.aborted) {
@@ -226,13 +229,17 @@ function registerIpc(): void {
       })
       .finally(() => {
         activeRequests.delete(request.requestId)
+        requestConversations.delete(request.requestId)
+        requestCompletions.delete(request.requestId)
       })
+    requestCompletions.set(request.requestId, completion)
 
     return { ok: true }
   })
 
-  ipcMain.handle('chat:stop', (_event, requestId: string) => {
+  ipcMain.handle('chat:stop', async (_event, requestId: string) => {
     activeRequests.get(requestId)?.abort()
+    await requestCompletions.get(requestId)
   })
 
   ipcMain.handle('chat:approveTool', (_event, requestId: string, callId: string, decision: 'allow_once' | 'always_allow' | 'deny') => {
@@ -263,13 +270,26 @@ function registerIpc(): void {
   })
 
   ipcMain.handle('workspace:installSkillFromUrl', async (_event, url: string) => {
-    return fetchSkillFromGitHubUrl(url)
+    return installSkillFromUrl(url, path.join(appDataDir(), 'skills'))
   })
 
   ipcMain.handle('conversations:load', () => loadConversations())
 
-  ipcMain.handle('conversations:save', (_event, conversations) => {
+  ipcMain.handle('conversations:save', async (_event, conversations: import('../shared/types').Conversation[]) => {
+    const retained = new Set(conversations.map(conversation => conversation.id))
+    const deleted = loadConversations().filter(conversation => !retained.has(conversation.id))
     saveConversations(conversations)
+    for (const conversation of deleted) {
+      if (!/^[\w-]+$/.test(conversation.id)) continue
+      for (const [requestId, conversationId] of requestConversations) {
+        if (conversationId !== conversation.id) continue
+        activeRequests.get(requestId)?.abort()
+        await requestCompletions.get(requestId)
+      }
+      if (!loadConversations().some(current => current.id === conversation.id)) {
+        fs.rmSync(path.join(appDataDir(), 'runtime', conversation.id), { recursive: true, force: true })
+      }
+    }
   })
 
   ipcMain.handle('attachments:save', (_event, input: SaveAttachmentInput) => {
@@ -278,13 +298,14 @@ function registerIpc(): void {
 
   ipcMain.handle('images:generate', async (_event, request: ImageRequest) => {
     const config = loadConfig()
-    const profile = config.profiles.find(candidate => candidate.id === config.activeProfileId)
-    if (!profile) throw new Error('请先配置模型服务')
+    const profile = config.profiles.find(candidate => candidate.id === request.profileId)
+    if (!profile) throw new Error('图片服务配置不存在，请重新选择服务')
     return generateImage(profile, getApiKey(profile.id), request)
   })
 
   ipcMain.handle('app:info', () => ({
     version: app.getVersion(),
+    harnessVersion: SDK_VERSION,
     electron: process.versions.electron,
     chrome: process.versions.chrome,
     dataDir: appDataDir(),
@@ -311,6 +332,15 @@ function registerIpc(): void {
 
   ipcMain.handle('app:showItemInFolder', (_event, target: string) => {
     shell.showItemInFolder(target)
+  })
+
+  ipcMain.handle('app:exportArtifact', async (_event, artifact: import('../shared/types').ArtifactItem) => {
+    const extension = ({ html: 'html', svg: 'svg', mermaid: 'mmd', markdown: 'md', diff: 'diff', code: 'txt' } as const)[artifact.kind] || 'txt'
+    const title = (artifact.title || 'Aster').replace(/[\x00-\x1f/\\:]/g, '-').slice(0, 120)
+    const result = await dialog.showSaveDialog({ title: '保存产物', defaultPath: artifact.filename ? path.basename(artifact.filename) : `${title}.${extension}` })
+    if (result.canceled || !result.filePath) return null
+    fs.writeFileSync(result.filePath, artifact.content, 'utf8')
+    return result.filePath
   })
 }
 

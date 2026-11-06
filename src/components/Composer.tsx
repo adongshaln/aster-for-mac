@@ -63,7 +63,9 @@ export function Composer() {
   const [uploading, setUploading] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [composing, setComposing] = useState(false)
-  const [customAnswer, setCustomAnswer] = useState('')
+  const [customAnswers, setCustomAnswers] = useState<Record<string, string>>({})
+  const [toolsOpen, setToolsOpen] = useState(false)
+  const toolsBtnRef = useRef<HTMLButtonElement>(null)
   const [injectionOpen, setInjectionOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -115,6 +117,10 @@ export function Composer() {
       textareaRef.current?.focus()
     }
   }, [composerQuote])
+
+  useEffect(() => {
+    setCustomAnswers({})
+  }, [pendingQuestion?.requestId, pendingQuestion?.callId])
 
   const addFiles = async (files: File[] | FileList) => {
     const images = Array.from(files).filter(file => file.type.startsWith('image/'))
@@ -214,21 +220,14 @@ export function Composer() {
               onClick={() => void resolveToolApproval('deny')}
               className="h-7 rounded-lg border border-[var(--cds-border)] px-3 text-[11px] font-medium text-[var(--cds-text-secondary)] hover:bg-[var(--cds-fill-ghost-hover)]"
             >
-              拒绝执行 (Deny)
-            </button>
-            <button
-              type="button"
-              onClick={() => void resolveToolApproval('always_allow')}
-              className="h-7 rounded-lg border border-clay/40 bg-clay/10 px-3 text-[11px] font-medium text-clay hover:bg-clay/15"
-            >
-              始终允许此类操作
+              拒绝执行
             </button>
             <button
               type="button"
               onClick={() => void resolveToolApproval('allow_once')}
               className="h-7 rounded-lg bg-clay px-3 text-[11px] font-semibold text-white hover:bg-clay-hover"
             >
-              单次批准 (Allow Once)
+              允许本次
             </button>
           </div>
         </div>
@@ -236,9 +235,9 @@ export function Composer() {
 
       {/* 2. Interactive Ask-User-Question Card */}
       {pendingQuestion && (
-        <div className="modal-panel mb-2.5 overflow-hidden rounded-[16px] border border-[var(--cds-border-strong)] bg-[var(--cds-surface-1)] p-3.5 shadow-md">
+        <div className="modal-panel scroll-quiet mb-2.5 max-h-[min(42vh,360px)] overflow-y-auto rounded-[16px] border border-[var(--cds-border-strong)] bg-[var(--cds-surface-1)] p-3.5 shadow-md">
           {pendingQuestion.questions.map(q => (
-            <div key={q.id} className="space-y-2">
+            <div key={q.id} className="space-y-2 py-2 first:pt-0 last:pb-0">
               <div className="flex items-center gap-1.5 text-[12.5px] font-semibold text-[var(--cds-text-primary)]">
                 <HelpCircle size={14} className="text-clay" />
                 <span>{q.question}</span>
@@ -249,7 +248,13 @@ export function Composer() {
                     key={opt.label}
                     type="button"
                     onClick={() => void resolveUserQuestion({ [q.id]: opt.label })}
-                    className="rounded-lg border border-[var(--cds-border)] bg-[var(--cds-surface-2)] px-3 py-1.5 text-left text-[11.5px] font-medium transition-all hover:border-clay hover:text-clay"
+                    aria-pressed={pendingQuestion.answers[q.id] === opt.label}
+                    className={cn(
+                      'rounded-lg border px-3 py-1.5 text-left text-[11.5px] font-medium transition-all hover:border-clay hover:text-clay',
+                      pendingQuestion.answers[q.id] === opt.label
+                        ? 'border-clay bg-clay/10 text-clay'
+                        : 'border-[var(--cds-border)] bg-[var(--cds-surface-2)]',
+                    )}
                   >
                     <div>{opt.label}</div>
                     {opt.description && (
@@ -260,17 +265,16 @@ export function Composer() {
               </div>
               <div className="flex items-center gap-1.5 pt-1">
                 <input
-                  value={customAnswer}
-                  onChange={e => setCustomAnswer(e.target.value)}
+                  value={customAnswers[q.id] ?? ''}
+                  onChange={e => setCustomAnswers(current => ({ ...current, [q.id]: e.target.value }))}
                   placeholder="或输入自定义回答…"
                   className="h-7 flex-1 rounded-lg border border-[var(--cds-border)] bg-[var(--cds-surface-2)] px-2.5 text-[11.5px] outline-none focus:border-clay"
                 />
                 <button
                   type="button"
-                  disabled={!customAnswer.trim()}
+                  disabled={!customAnswers[q.id]?.trim()}
                   onClick={() => {
-                    const ans = customAnswer.trim()
-                    setCustomAnswer('')
+                    const ans = customAnswers[q.id]?.trim() ?? ''
                     void resolveUserQuestion({ [q.id]: ans })
                   }}
                   className="h-7 rounded-lg bg-clay px-3 text-[11px] font-semibold text-white disabled:opacity-40"
@@ -278,13 +282,19 @@ export function Composer() {
                   提交
                 </button>
               </div>
+              {pendingQuestion.answers[q.id] && (
+                <div className="text-[10.5px] text-clay">已回答：{pendingQuestion.answers[q.id]}</div>
+              )}
             </div>
           ))}
+          {pendingQuestion.questions.length > 1 && (
+            <p className="mt-2 text-[10.5px] text-[var(--cds-text-muted)]">回答全部问题后将自动继续。</p>
+          )}
         </div>
       )}
 
       {/* 3. Studio Workspace & Tool Chips Strip (`dsh-claude-style` hairline chips above card) */}
-      <div className="mb-1.5 flex items-center gap-1.5 px-1">
+      <div className="mb-1.5 flex min-w-0 flex-wrap items-center gap-1.5 px-1">
         <button
           type="button"
           onClick={() => void pickWorkspaceDirectory()}
@@ -295,6 +305,13 @@ export function Composer() {
           <span className="max-w-[150px] truncate font-mono">{workspaceShort}</span>
         </button>
 
+        <button ref={toolsBtnRef} type="button" onClick={() => setToolsOpen(value => !value)} aria-expanded={toolsOpen} className="flex h-6 shrink-0 items-center gap-1.5 rounded-full border border-[var(--cds-border)] px-2.5 text-[11px] text-[var(--cds-text-secondary)] hover:bg-[var(--cds-fill-ghost-hover)]">
+          <Settings2 size={12} />工具与权限
+        </button>
+        <Popover open={toolsOpen} onClose={() => setToolsOpen(false)} anchorRef={toolsBtnRef} width={280} side="top">
+          <div className="space-y-3 p-4">
+            <p className="text-xs font-medium text-[var(--cds-text-secondary)]">本对话的工具</p>
+            <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => void toggleWebSearch()}
@@ -319,10 +336,10 @@ export function Composer() {
               ? 'border-clay/40 bg-clay/10 text-clay'
               : 'border-[var(--cds-border)] bg-[var(--cds-surface-2)]/80 text-[var(--cds-text-muted)] hover:text-[var(--cds-text-secondary)]',
           )}
-          title="DeepSeek Harness 原生桌面工具 (bash / read / write / edit / glob / grep / subagent)"
+          title="读取、编辑文件，运行命令并完成任务"
         >
           <Terminal size={11} />
-          <span>Harness 工具</span>
+          <span>任务工具</span>
         </button>
 
         {harnessToolsEnabled && (
@@ -342,6 +359,11 @@ export function Composer() {
             <span>{PERMISSION_LABELS[permissionMode].label}</span>
           </button>
         )}
+
+            </div>
+            <p className="text-xs leading-relaxed text-[var(--cds-text-muted)]">{harnessToolsEnabled ? PERMISSION_LABELS[permissionMode].desc : '任务工具已关闭，仅进行对话。'}</p>
+          </div>
+        </Popover>
 
         <button
           ref={injectionBtnRef}
@@ -480,7 +502,7 @@ export function Composer() {
           if (event.dataTransfer.files.length) void addFiles(event.dataTransfer.files)
         }}
         className={cn(
-          'composer-shell relative flex w-full flex-col gap-1 rounded-[20px] border border-[var(--cds-border)] bg-[var(--cds-surface-2)] p-3',
+          'composer-shell relative flex w-full flex-col gap-1 rounded-composer border border-[var(--cds-border)] bg-[var(--cds-surface-2)] p-3',
           dragging && 'border-clay/60',
         )}
       >
@@ -650,8 +672,7 @@ export function Composer() {
           ) : hasProfile && hasModel ? (
             <>
               <span>{config?.settings.enterToSend ? 'Enter 发送 · Shift + Enter 换行' : '⌘ + Enter 发送'}</span>
-              <span className="opacity-40">·</span>
-              <span>支持粘贴图片、联网搜索与本地 Harness 工具</span>
+
             </>
           ) : (
             <button
@@ -664,9 +685,7 @@ export function Composer() {
             </button>
           )}
         </div>
-        <div className="hidden text-[10px] text-[var(--cds-text-muted)] md:block">
-          Aster for macOS · DeepSeek Harness 引擎
-        </div>
+
       </div>
     </div>
   )

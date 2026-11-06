@@ -1,6 +1,8 @@
 import { AlertTriangle } from 'lucide-react'
-import { useEffect, type ReactNode } from 'react'
+import { useId, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { motion, useReducedMotion } from 'framer-motion'
+import { motionModalDialog } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export function Modal({
@@ -9,40 +11,85 @@ export function Modal({
   children,
   width = 470,
   className,
+  label = '对话框',
 }: {
   open: boolean
   onClose: () => void
   children: ReactNode
   width?: number
   className?: string
+  label?: string
 }) {
-  useEffect(() => {
+  const panel = useRef<HTMLDivElement>(null)
+  const previousFocus = useRef<HTMLElement | null>(null)
+  const wasOpen = useRef(false)
+  const headingId = useId()
+  const reducedMotion = useReducedMotion()
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+  if (open && !wasOpen.current) previousFocus.current = document.activeElement as HTMLElement
+  wasOpen.current = open
+  useLayoutEffect(() => {
     if (!open) return
+    const root = document.getElementById('root')
+    const wasInert = root?.inert ?? false
+    if (root) root.inert = true
+    const dialog = panel.current!
+    const heading = dialog.querySelector('h1,h2,h3')
+    if (heading) { heading.id ||= headingId; dialog.setAttribute('aria-labelledby', heading.id) }
+    const focusable = () => Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')).filter(item => item.getClientRects().length > 0 && !item.closest('[inert]'))
+    const focusFirst = () => (focusable()[0] ?? dialog).focus()
+    if (!dialog.contains(document.activeElement)) focusFirst()
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (dialog.querySelector('[data-popover="true"]')) return
+        event.preventDefault()
         event.stopPropagation()
-        onClose()
+        closeRef.current()
+      } else if (event.key === 'Tab') {
+        const items = focusable()
+        const first = items[0] ?? dialog
+        const last = items.at(-1) ?? dialog
+        if (!items.length || !dialog.contains(document.activeElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+          event.preventDefault()
+          ;(event.shiftKey ? last : first).focus()
+        }
       }
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
+    const onFocus = (event: FocusEvent) => { if (!dialog.contains(event.target as Node)) focusFirst() }
+    window.addEventListener('keydown', onKeyDown, true)
+    document.addEventListener('focusin', onFocus)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown, true)
+      document.removeEventListener('focusin', onFocus)
+      if (root) root.inert = wasInert
+      if (previousFocus.current?.isConnected) previousFocus.current.focus()
+    }
+  }, [open, headingId])
 
   if (!open || typeof document === 'undefined') return null
 
   return createPortal(
     <div
-      className="modal-backdrop fixed inset-0 z-[90] flex items-center justify-center bg-black/32 p-6 dark:bg-black/55"
+      className="modal-backdrop fixed inset-0 z-[90] flex items-center justify-center bg-black/[0.32] p-6 dark:bg-black/55"
       onClick={event => {
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <div
+      <motion.div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+        variants={reducedMotion ? undefined : motionModalDialog}
+        initial={reducedMotion ? false : 'initial'}
+        animate="animate"
         style={{ width }}
-        className={cn('modal-panel relative z-10 max-w-full', className)}
+        className={cn('relative z-10 max-w-full outline-none', className)}
       >
         {children}
-      </div>
+      </motion.div>
     </div>,
     document.body,
   )

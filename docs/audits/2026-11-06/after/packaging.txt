@@ -1,0 +1,95 @@
+
+> aster-mac@4.4.0 dist
+> npm run build && electron-builder --mac dir
+
+
+> aster-mac@4.4.0 build
+> npm run build:electron && npm run build:renderer
+
+
+> aster-mac@4.4.0 build:electron
+> tsc -p tsconfig.electron.json
+
+
+> aster-mac@4.4.0 build:renderer
+> vite build
+
+vite v6.4.5 building for production...
+transforming...
+✓ 3855 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                           0.45 kB │ gzip:   0.29 kB
+dist/assets/index-BUjhGhNg.css                           84.23 kB │ gzip:  16.08 kB
+dist/assets/chunk-2Q5K7J3B-BGcxkHjw.js                    0.20 kB │ gzip:   0.16 kB
+dist/assets/chunk-JWPE2WC7-DBIH1A7M.js                    0.23 kB │ gzip:   0.17 kB
+dist/assets/chunk-XXDRQBXY-B-s2ZcYL.js                    0.23 kB │ gzip:   0.21 kB
+dist/assets/chunk-5VM5RSS4-q5Vhf-iK.js                    0.37 kB │ gzip:   0.27 kB
+dist/assets/chunk-TU62E6Q5-BxQcKcDu.js                    0.51 kB │ gzip:   0.36 kB
+dist/assets/swimlanesDiagram-OMPLPG4O-DjeJ4TJX.js         0.51 kB │ gzip:   0.36 kB
+dist/assets/infoDiagram-KBXO4MBG-DXMJkU3I.js              0.59 kB │ gzip:   0.40 kB
+dist/assets/sizeCapture-INFHLROL-DcwyS3U7.js              0.94 kB │ gzip:   0.53 kB
+dist/assets/railroadDiagram-MRQ6NCDL-DnhOMN8z.js          1.61 kB │ gzip:   0.76 kB
+dist/assets/abnfDiagram-S7VZAUFO-1i3xOGaT.js              1.81 kB │ gzip:   0.89 kB
+dist/assets/chunk-HFQBQIA3-DRpDUxya.js                    1.88 kB │ gzip:   0.83 kB
+dist/assets/pegDiagram-FD4XPPHP-DwD3O7Do.js               1.96 kB │ gzip:   0.93 kB
+dist/assets/ebnfDiagram-UZSYDL2S-Bg4OUXY5.js              2.01 kB │ gzip:   0.88 kB
+dist/assets/diagram-DNEMPZML-Cut_-ycE.js                  4.28 kB │ gzip:   1.89 kB
+dist/assets/pieDiagram-J4AKIIQI-_C0GEsdO.js               5.10 kB │ gzip:   2.16 kB
+dist/assets/bpmnIcons-APHXDYXF-ByGoYv9M.js                5.21 kB │ gzip:   1.16 kB
+dist/assets/chunk-KS47KZWR-DsrKSGLH.js                    5.60 kB │ gzip:   2.59 kB
+dist/assets/diagram-L3MUGCDN-C2QGzzCy.js                  6.08 kB │ gzip:   2.62 kB
+dist/assets/diagram-XPFHEONP-DGXxjiBi.js                  8.22 kB │ gzip:   3.67 kB
+dist/assets/cynefinDiagram-L36ESFBY-B-NpPQL-.js          10.10 kB │ gzip:   3.63 kB
+dist/assets/chunk-KQLB2F66-Cx-qBvIL.js                   10.39 kB │ gzip:   4.31 kB
+dist/assets/diagram-MHCOC4E2-C06SnMlP.js                 11.01 kB │ gzip:   4.28 kB
+dist/assets/chunk-OY52VR5R-B5OASvOy.js                   15.73 kB │ gzip:   4.40 kB
+dist/assets/diagram-LA4NIPWU-Cgl_gMUE.js                 16.30 kB │ gzip:   5.81 kB
+dist/assets/ishikawaDiagram-M35NCXHK-Dsxt8wbY.js         17.47 kB │ gzip:   6.65 kB
+dist/assets/kanban-definition-BZKZHSQY-Dxk6vBwN.js       20.30 kB │ gzip:   7.21 kB
+dist/assets/mindmap-definition-I2QAS2VK-4Ag4sa8n.js      22.76 kB │ gzip:   7.61 kB
+dist/assets/journeyDiagram-OPLOXDXO-DxgmwE_n.js          23.54 kB │ gzip:   8.34 kB
+dist/assets/graph-D8UmR1vK.js                            23.89 kB │ gzip:   8.30 kB
+dist/assets/wardleyDiagram-S7YFUSEH-4wvtx36j.js          25.50 kB │ gzip:   6.80 kB
+dist/assets/gitGraphDiagram-STJD7YCW-BbIi4IIv.js         29.42 kB │ gzip:   8.70 kB
+dist/assets/erDiagram-EYBAPDEH-DgJicOi7.js               30.68 kB │ gzip:  10.56 kB
+dist/assets/timeline-definition-SEUHKTQE-nkFjN5Yu.js     30.86 kB │ gzip:  10.17 kB
+dist/assets/requirementDiagram-Y7LWUY3S-DEmRUmaa.js      31.04 kB │ gzip:   9.77 kB
+dist/assets/quadrantDiagram-XTYBLID2-BXu15sm9.js         33.95 kB │ gzip:   9.94 kB
+dist/assets/sankeyDiagram-WGJFYUXA-sP_epz7m.js           39.92 kB │ gzip:  15.10 kB
+dist/assets/d3-scale-4DPf7zan.js                         41.33 kB │ gzip:  15.14 kB
+dist/assets/stateDiagram-v2-FJ4FJNEA-Cum7fnQg.js         41.75 kB │ gzip:  13.98 kB
+dist/assets/vennDiagram-NNMJR3RB-tcckoL34.js             41.99 kB │ gzip:  15.70 kB
+dist/assets/blockDiagram-APKKGZFW-CBTJ6af3.js            42.70 kB │ gzip:  14.05 kB
+dist/assets/xychartDiagram-GGNKY7IX-6kC4VzNw.js          43.50 kB │ gzip:  12.10 kB
+dist/assets/dagre-SPEB5RXH-DjW12dCp.js                   46.15 kB │ gzip:  16.47 kB
+dist/assets/classDiagram-v2-L25IHNXF-DqtIrH5L.js         49.87 kB │ gzip:  16.04 kB
+dist/assets/ganttDiagram-23REXITY-DoHOolew.js            53.16 kB │ gzip:  18.29 kB
+dist/assets/flowDiagram-MALGAFMO-CIVKoKzV.js             65.01 kB │ gzip:  20.97 kB
+dist/assets/c4Diagram-KJ2TOQU5-D3VDvemk.js               65.81 kB │ gzip:  18.88 kB
+dist/assets/diagram-3B7GL73J-CMFqkk4c.js                 81.10 kB │ gzip:  25.16 kB
+dist/assets/cose-bilkent-JH36ORCC-CbPQpTLD.js            81.70 kB │ gzip:  22.47 kB
+dist/assets/sequenceDiagram-5NDRBG5M-CIkkGeTH.js        118.92 kB │ gzip:  31.97 kB
+dist/assets/swimlanes-UMQ2AFYF-CmWOXLrs.js              123.28 kB │ gzip:  45.38 kB
+dist/assets/architectureDiagram-YGSQEFNW-C13r1RlR.js    151.83 kB │ gzip:  43.12 kB
+dist/assets/usecaseDiagram-AFA6YXN4-Cmwc273-.js         189.92 kB │ gzip:  50.70 kB
+dist/assets/katex-DLSO0Xi6.js                           261.72 kB │ gzip:  77.89 kB
+dist/assets/cytoscape.esm-CjX6Hyah.js                   443.93 kB │ gzip: 142.42 kB
+dist/assets/cynefin-EF2NZ3EQ-DMf20eRZ.js                654.03 kB │ gzip: 136.56 kB
+dist/assets/mermaid.core-ClDJ2WCh.js                    671.39 kB │ gzip: 165.02 kB
+dist/assets/index-J81dezJe.js                           787.94 kB │ gzip: 245.30 kB
+dist/assets/elk-XV6XMXQE-Hxs65FnW.js                  1,513.29 kB │ gzip: 463.57 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 9.96s
+  • electron-builder  version=26.18.0 os=27.0.0
+  • loaded configuration  file=package.json ("build" field)
+  • skipped dependencies rebuild  reason=npmRebuild is set to false
+  • packaging       platform=darwin arch=arm64 electron=45.1.0 appOutDir=release/mac-arm64
+  • using custom unpacked Electron distribution  electronDist=node_modules/electron/dist
+  • copying unpacked Electron  source=/Users/mac/Documents/all project/aster for mac/node_modules/electron/dist/Electron.app destination=/Users/mac/Documents/all project/aster for mac/release/mac-arm64/Electron.app
+  • searching for node modules  pm=npm searchDir=/Users/mac/Documents/all project/aster for mac
+  • skipped macOS code signing  reason=identity explicitly is set to null

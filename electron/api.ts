@@ -491,12 +491,15 @@ function usageFromOpenAi(usage: unknown, previous: MessageUsage): MessageUsage {
 function usageFromAnthropic(usage: unknown, previous: MessageUsage): MessageUsage {
   if (!usage || typeof usage !== 'object') return previous
   const root = usage as Record<string, unknown>
-  const input = numberValue(root.input_tokens, previous.inputTokens)
+  const uncached = numberValue(root.input_tokens, Math.max(0, previous.inputTokens - previous.cachedTokens - previous.cacheWriteTokens))
+  const cached = numberValue(root.cache_read_input_tokens, previous.cachedTokens)
+  const cacheWrite = numberValue(root.cache_creation_input_tokens, previous.cacheWriteTokens)
+  const input = uncached + cached + cacheWrite
   const output = numberValue(root.output_tokens, previous.outputTokens)
   return {
     inputTokens: input,
-    cachedTokens: numberValue(root.cache_read_input_tokens, previous.cachedTokens),
-    cacheWriteTokens: numberValue(root.cache_creation_input_tokens, previous.cacheWriteTokens),
+    cachedTokens: cached,
+    cacheWriteTokens: cacheWrite,
     outputTokens: output,
     reasoningTokens: previous.reasoningTokens,
     totalTokens: input + output,
@@ -1560,9 +1563,11 @@ export async function streamChat(
     let roundText = ''
     let roundReasoning = ''
     let completed = false
+    let finishReason = ''
     let roundResponseId = ''
     const toolCallMap = new Map<string, { id: string; name: string; args: string }>()
     const anthropicBlockMap = new Map<number, { id: string; name: string; args: string }>()
+    const anthropicContentBlocks = new Map<number, Record<string, unknown>>()
     const nyStreamDecoder = new NyDisplayStreamDecoder(NY_TUNNEL_PARAM_NAME)
     let sawNyTunnelCall = false
     let bufferedPlainDelta = ''
@@ -1600,11 +1605,13 @@ export async function streamChat(
         throw new Error('服务返回的不是有效 JSON 或 SSE')
       }
       if (anthropic) {
+        finishReason = String(root.stop_reason ?? '')
         const content = root.content
         if (Array.isArray(content)) {
           for (const block of content) {
             if (!block || typeof block !== 'object') continue
             const record = block as Record<string, unknown>
+            anthropicContentBlocks.set(anthropicContentBlocks.size, { ...record })
             if (record.type === 'text') recordRoundText(String(record.text ?? ''))
             if (record.type === 'thinking') recordRoundReasoning(String(record.thinking ?? ''))
             if (record.type === 'tool_use') {
@@ -1647,6 +1654,7 @@ export async function streamChat(
       } else {
         const choices = Array.isArray(root.choices) ? root.choices : []
         const choice = choices[0] as Record<string, unknown> | undefined
+        finishReason = String(choice?.finish_reason ?? '')
         const message = choice?.message as Record<string, unknown> | undefined
         if (message) {
           recordRoundText(extractText(message.content) || (typeof message.content === 'string' ? message.content : ''))
@@ -1684,7 +1692,7 @@ export async function streamChat(
 
       const handlePayload = (payload: string) => {
         if (!payload || payload === '[DONE]') {
-          if (payload === '[DONE]') completed = true
+          if (payload === '[DONE]') { completed = true; streamDone = true }
           return
         }
         let root: Record<string, unknown>
@@ -1702,6 +1710,11 @@ export async function streamChat(
           } else if (type === 'content_block_start') {
             const idx = Number(root.index ?? 0)
             const cb = root.content_block as Record<string, unknown> | undefined
+            if (cb) {
+              anthropicContentBlocks.set(idx, { ...cb })
+              if (cb.type === 'text' && cb.text) recordRoundText(String(cb.text))
+              if (cb.type === 'thinking' && cb.thinking) recordRoundReasoning(String(cb.thinking))
+            }
             if (cb?.type === 'tool_use') {
               anthropicBlockMap.set(idx, {
                 id: String(cb.id ?? `call-${idx}`),
@@ -1713,9 +1726,18 @@ export async function streamChat(
             const idx = Number(root.index ?? 0)
             const delta = root.delta as Record<string, unknown> | undefined
             if (!delta) return
-            if (delta.type === 'text_delta') recordRoundText(String(delta.text ?? ''))
-            else if (delta.type === 'thinking_delta') recordRoundReasoning(String(delta.thinking ?? ''))
-            else if (delta.type === 'input_json_delta') {
+            const block = anthropicContentBlocks.get(idx)
+            if (delta.type === 'text_delta') {
+              const text = String(delta.text ?? '')
+              if (block) block.text = String(block.text ?? '') + text
+              recordRoundText(text)
+            } else if (delta.type === 'thinking_delta') {
+              const thinking = String(delta.thinking ?? '')
+              if (block) block.thinking = String(block.thinking ?? '') + thinking
+              recordRoundReasoning(thinking)
+            } else if (delta.type === 'signature_delta') {
+              if (block) block.signature = String(block.signature ?? '') + String(delta.signature ?? '')
+            } else if (delta.type === 'input_json_delta') {
               const entry = anthropicBlockMap.get(idx)
               if (entry) entry.args += String(delta.partial_json ?? '')
             }
@@ -1723,14 +1745,21 @@ export async function streamChat(
             const idx = Number(root.index ?? 0)
             const entry = anthropicBlockMap.get(idx)
             if (entry && entry.name) {
-              toolCallMap.set(entry.id, { ...entry, args: entry.args || '{}' })
+              const block = anthropicContentBlocks.get(idx)
+              const input = entry.args ? JSON.parse(entry.args) : block?.input ?? {}
+              if (block) block.input = input
+              toolCallMap.set(entry.id, { ...entry, args: JSON.stringify(input) })
             }
           } else if (type === 'message_delta') {
             roundUsage = usageFromAnthropic(root.usage, roundUsage)
             const delta = root.delta as Record<string, unknown> | undefined
-            if (delta && typeof delta.stop_reason === 'string' && delta.stop_reason) completed = true
+            if (delta && typeof delta.stop_reason === 'string' && delta.stop_reason) {
+              finishReason = delta.stop_reason
+              completed = true
+            }
           } else if (type === 'message_stop') {
             completed = true
+            streamDone = true
           } else if (type === 'error') {
             const error = root.error as Record<string, unknown> | undefined
             throw new Error(String(error?.message ?? 'Anthropic 返回错误'))
@@ -1778,6 +1807,7 @@ export async function streamChat(
             if (completedResponse?.id) roundResponseId = String(completedResponse.id)
             roundUsage = usageFromOpenAi(completedResponse?.usage ?? root.usage, roundUsage)
             completed = true
+            streamDone = true
           } else if (type === 'response.failed' || type === 'response.incomplete') {
             const failed = root.response as Record<string, unknown> | undefined
             const error = failed?.error as Record<string, unknown> | undefined
@@ -1843,6 +1873,7 @@ export async function streamChat(
           }
         }
         if (typeof choice.finish_reason === 'string' && choice.finish_reason) {
+          finishReason = choice.finish_reason
           if (sawNyTunnelCall) {
             const tail = nyStreamDecoder.finish()
             if (tail) recordRoundText(tail, true)
@@ -1852,37 +1883,41 @@ export async function streamChat(
         if (root.usage) roundUsage = usageFromOpenAi(root.usage, roundUsage)
       }
 
-      while (!streamDone) {
-        const { value, done } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        buffer = buffer.replace(/\r\n/g, '\n')
-        let boundary = buffer.indexOf('\n\n')
-        while (boundary >= 0) {
-          const block = buffer.slice(0, boundary)
-          buffer = buffer.slice(boundary + 2)
-          const dataLines = block
+      try {
+        while (!streamDone) {
+          const { value, done } = await reader.read()
+          if (done) { buffer += decoder.decode(); break }
+          buffer += decoder.decode(value, { stream: true })
+          buffer = buffer.replace(/\r\n/g, '\n')
+          let boundary = buffer.indexOf('\n\n')
+          while (boundary >= 0) {
+            const block = buffer.slice(0, boundary)
+            buffer = buffer.slice(boundary + 2)
+            const dataLines = block
+              .split('\n')
+              .filter(line => line.startsWith('data:'))
+              .map(line => line.slice(5).trimStart())
+            if (dataLines.length) handlePayload(dataLines.join('\n'))
+            if (streamDone) break
+            boundary = buffer.indexOf('\n\n')
+          }
+        }
+        if (!streamDone && buffer.trim()) {
+          const dataLines = buffer
             .split('\n')
             .filter(line => line.startsWith('data:'))
             .map(line => line.slice(5).trimStart())
           if (dataLines.length) handlePayload(dataLines.join('\n'))
-          if (completed) {
-            streamDone = true
-            break
-          }
-          boundary = buffer.indexOf('\n\n')
         }
-      }
-      if (!streamDone && buffer.trim()) {
-        const dataLines = buffer
-          .split('\n')
-          .filter(line => line.startsWith('data:'))
-          .map(line => line.slice(5).trimStart())
-        if (dataLines.length) handlePayload(dataLines.join('\n'))
+      } finally {
+        await reader.cancel().catch(() => {})
+        reader.releaseLock()
       }
     }
 
+    signal.throwIfAborted()
     totalUsage = sumUsage(totalUsage, roundUsage)
+    emit({ type: 'usage', usage: totalUsage })
 
     // `_0x30b` validation & retry: if pureMode tunnel was bypassed by a plain-text refusal (no tool call),
     // automatically retry once with fresh Session Reference + explicit function tool_choice and tighter history.
@@ -1926,12 +1961,18 @@ export async function streamChat(
         arguments: c.args.trim() || '{}',
       }))
 
-    if (!completed && !roundText && pendingCalls.length === 0) {
+    if (!completed && (!pureMode || (!roundText && pendingCalls.length === 0))) {
       if (signal.aborted) {
         emit({ type: 'stopped' })
         return
       }
       throw new Error('流式连接提前结束，未收到完整响应')
+    }
+
+    if (!pureMode && (finishReason === 'length' || finishReason === 'max_tokens')) {
+      emit({ type: 'status', message: '回答达到输出上限，可从中断处继续' })
+      emit({ type: 'stopped' })
+      return
     }
 
     // If no tool calls were requested, the model has finished its final answer
@@ -1945,6 +1986,7 @@ export async function streamChat(
       profile,
       apiKey,
       permissionMode,
+      allowedToolNames: new Set(toolDefs.map(tool => tool.name)),
       skills: activeSkills,
       signal,
       emitActivity: (activity: ToolActivity) => emit({ type: 'tool', activity }),
@@ -1959,7 +2001,7 @@ export async function streamChat(
         if (callbacks.requestApproval) {
           return callbacks.requestApproval(callId, activity)
         }
-        return 'allow_once'
+        return 'deny'
       },
       requestAskUser: async (callId: string, questions: AskUserQuestionItem[]) => {
         emit({ type: 'ask_user', callId, questions })
@@ -1983,22 +2025,10 @@ export async function streamChat(
 
     // Append assistant tool calls and tool outputs to the protocol-specific history
     if (anthropic) {
-      const assistantContent: Record<string, unknown>[] = []
-      if (roundText.trim()) assistantContent.push({ type: 'text', text: roundText })
-      for (const { call } of toolResults) {
-        let parsedInput: unknown = {}
-        try {
-          parsedInput = JSON.parse(call.arguments)
-        } catch {
-          parsedInput = {}
-        }
-        assistantContent.push({
-          type: 'tool_use',
-          id: call.id,
-          name: call.name,
-          input: parsedInput,
-        })
-      }
+      // Replay every original block in order, including opaque thinking signatures.
+      const assistantContent = [...anthropicContentBlocks.entries()]
+        .sort(([a], [b]) => a - b)
+        .map(([, block]) => block)
       anthropicMessages.push({ role: 'assistant', content: assistantContent })
       anthropicMessages.push({
         role: 'user',

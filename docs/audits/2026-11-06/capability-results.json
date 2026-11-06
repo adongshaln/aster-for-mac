@@ -1,0 +1,44 @@
+[
+  {
+    "scenario": "task needs 14 model steps",
+    "requests": 12,
+    "done": true,
+    "finalText": "",
+    "lastTodo": [
+      {
+        "content": "unfinished step 12",
+        "status": "in_progress"
+      }
+    ]
+  },
+  {
+    "scenario": "delegated repository analysis",
+    "childTools": [],
+    "childInput": [
+      {
+        "role": "user",
+        "content": "Read local files and analyze bugs"
+      }
+    ],
+    "parentRecordedTotal": 13,
+    "childReportedTokens": 1001
+  },
+  {
+    "scenario": "tool outputs accumulate under a 4096-token context budget",
+    "requestMessageCharacters": [
+      404,
+      36738,
+      73072,
+      109406
+    ]
+  },
+  {
+    "scenario": "install skill from GitHub directory URL",
+    "requestedUrl": "https://raw.githubusercontent.com/example/repo/main/skills/example/main/SKILL.md",
+    "expectedUrl": "https://raw.githubusercontent.com/example/repo/main/skills/example/SKILL.md"
+  },
+  {
+    "scenario": "repository with 305 files, target in last file",
+    "grepResult": "No matches found."
+  }
+]

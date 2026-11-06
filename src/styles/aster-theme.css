@@ -1,0 +1,75 @@
+/* Aster's shared warm-paper palette; desktop controls retain native density. */
+:root {
+  --aster-accent-rgb: 217 119 87;
+  --aster-canvas: #f4f3ee;
+  --aster-surface: #faf9f5;
+  --aster-ink: #141413;
+  --aster-muted: #6b6860;
+  --aster-border: #e4e1d8;
+  --aster-radius-control: 10px;
+  --aster-radius-message: 16px;
+  --aster-radius-panel: 12px;
+  --aster-radius-modal: 20px;
+  --aster-radius-composer: 22px;
+  --aster-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --cds-clay: rgb(var(--aster-accent-rgb));
+  --cds-clay-hover: #c46141;
+  --cds-clay-light: #faede7;
+  --brand: var(--cds-clay);
+  --cds-surface-0: var(--aster-canvas);
+  --cds-surface-1: var(--aster-surface);
+  --cds-surface-2: #fffefa;
+  --cds-surface-3: #fffefa;
+  --cds-surface-popover: #fffefa;
+  --cds-text-primary: var(--aster-ink);
+  --cds-text-secondary: #514f48;
+  --cds-text-muted: var(--aster-muted);
+  --cds-border: var(--aster-border);
+  --cds-border-strong: #c8c4b9;
+  --cds-fill-ghost-hover: rgb(20 20 19 / 5%);
+  --cds-fill-ghost-selected: rgb(20 20 19 / 9%);
+  --cds-fill-secondary: rgb(20 20 19 / 7%);
+  --cds-message-bubble-radius: var(--aster-radius-message);
+  --cds-radius-composer: var(--aster-radius-composer);
+  --cds-panel-radius: var(--aster-radius-panel);
+  --cds-shadow-composer: 0 3px 14px rgb(50 40 25 / 4%);
+  --cds-shadow-composer-hover: 0 4px 18px rgb(50 40 25 / 6%);
+  --cds-shadow-composer-focus: 0 4px 20px rgb(50 40 25 / 8%), 0 0 0 1px var(--cds-border-strong);
+}
+.dark {
+  --aster-accent-rgb: 226 135 105;
+  --aster-canvas: #141413;
+  --aster-surface: #1e1e1c;
+  --aster-ink: #f0efea;
+  --aster-muted: #aaa79f;
+  --aster-border: #36352f;
+  --cds-clay: rgb(var(--aster-accent-rgb));
+  --cds-clay-hover: #ef9b7f;
+  --cds-clay-light: #38241e;
+  --cds-surface-0: var(--aster-canvas);
+  --cds-surface-1: var(--aster-surface);
+  --cds-surface-2: #252521;
+  --cds-surface-3: #292924;
+  --cds-surface-popover: #292924;
+  --cds-text-primary: var(--aster-ink);
+  --cds-text-secondary: #c7c4ba;
+  --cds-text-muted: var(--aster-muted);
+  --cds-border: var(--aster-border);
+  --cds-border-strong: #57554d;
+  --cds-fill-ghost-hover: rgb(240 239 234 / 6%);
+  --cds-fill-ghost-selected: rgb(240 239 234 / 10%);
+  --cds-fill-secondary: rgb(240 239 234 / 8%);
+  --cds-shadow-composer: 0 3px 16px rgb(0 0 0 / 12%);
+  --cds-shadow-composer-hover: 0 4px 18px rgb(0 0 0 / 16%);
+  --cds-shadow-composer-focus: 0 4px 20px rgb(0 0 0 / 20%), 0 0 0 1px var(--cds-border-strong);
+}
+.workspace-layout { container-type: inline-size; }
+.artifact-pane { transition-timing-function: var(--aster-ease); }
+@container (max-width: 900px) {
+  .workspace-layout .artifact-pane { position: absolute; inset: 8px; z-index: 35; width: auto !important; height: auto; border: 1px solid var(--cds-border); border-radius: var(--aster-radius-panel); overflow: hidden; box-shadow: var(--cds-shadow-lg); }
+  .workspace-layout .artifact-expand { display: none; }
+}
+.mermaid-preview svg { max-width: 100%; height: auto; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--cds-clay); outline-offset: 3px; }
+
+[role="dialog"] h2 { font-family: ui-serif, "New York", Georgia, "Songti SC", serif; font-size: 20px; }

@@ -50,6 +50,7 @@ export function Popover({
   const anchor = anchorRef.current
   if (!anchor) return null
   const rect = anchor.getBoundingClientRect()
+  width = Math.min(width, window.innerWidth - 20)
   const margin = 10
   const viewportWidth = window.innerWidth
   const viewportHeight = window.innerHeight
@@ -77,6 +78,7 @@ export function Popover({
         }}
       />
       <div
+        data-popover="true"
         style={{
           position: 'fixed',
           left,
@@ -92,6 +94,6 @@ export function Popover({
         {children}
       </div>
     </>,
-    document.body,
+    anchor.closest('[role="dialog"]') ?? document.body,
   )
 }

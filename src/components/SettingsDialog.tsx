@@ -32,7 +32,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl'
 import { CdsSelect, ModelAutocompleteField } from '@/components/ui/Select'
 import { Switch } from '@/components/ui/Switch'
 import { Modal } from '@/components/ui/Modal'
-import { useAppStore, type SettingsSection } from '@/state/store'
+import { useAppStore, activeConversation, type SettingsSection } from '@/state/store'
 import { cn, uid } from '@/lib/utils'
 
 interface Draft extends Profile {
@@ -92,7 +92,7 @@ export function SettingsDialog() {
 
   return (
     <Modal open={open} onClose={close} width={920} className="outline-none">
-      <div className="flex h-[min(660px,calc(100vh-48px))] overflow-hidden rounded-[18px] border border-[var(--cds-border)] bg-[var(--cds-surface-1)] shadow-popover">
+      <div className="flex h-[min(660px,calc(100vh-48px))] overflow-hidden rounded-[var(--aster-radius-modal)] border border-[var(--cds-border)] bg-[var(--cds-surface-1)] shadow-popover">
         <aside className="flex w-[190px] shrink-0 flex-col border-r border-[var(--cds-border)] bg-[var(--cds-surface-0)] px-2.5 py-4">
           <div className="px-2 pb-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--cds-text-muted)]">设置</div>
           {sections.map(item => (
@@ -251,6 +251,8 @@ function ServiceSettings() {
   const config = useAppStore(state => state.config)
   const saveConfig = useAppStore(state => state.saveConfig)
   const setActiveProfile = useAppStore(state => state.setActiveProfile)
+  const conversation = useAppStore(activeConversation)
+  const setConversationProfile = useAppStore(state => state.setConversationProfile)
   const showToast = useAppStore(state => state.showToast)
   const [selectedId, setSelectedId] = useState(config?.activeProfileId || config?.profiles[0]?.id || 'new')
   const [draft, setDraft] = useState<Draft>(() => {
@@ -656,6 +658,16 @@ function ServiceSettings() {
                   className="flex h-8 items-center gap-1.5 rounded-lg border border-clay/35 px-3 text-[11.5px] font-medium text-clay transition-colors hover:bg-clay/[0.06]"
                 >
                   设为默认
+                </button>
+              )}
+              {!isNew && conversation && conversation.profileId !== draft.id && (
+                <button
+                  type="button"
+                  onClick={() => setConversationProfile(draft.id)}
+                  disabled={saving}
+                  className="flex h-8 items-center gap-1.5 rounded-lg border border-clay/35 px-3 text-[11.5px] font-medium text-clay transition-colors hover:bg-clay/[0.06] disabled:opacity-50"
+                >
+                  此对话改用此服务
                 </button>
               )}
               <button
@@ -1166,7 +1178,7 @@ function ToolsAndSkillsSettings() {
     <div>
       <SectionHeader
         title="DeepSeek Harness 工具与技能包"
-        description="管理工作区路径、内置 Harness 原生工具权限以及从 GitHub 导入的 SKILL.md 扩展插件。"
+        description="管理工作区、任务权限与技能；从 GitHub 安装时会保留技能的脚本和资源。"
       />
 
       <div className="space-y-1">
@@ -1342,6 +1354,7 @@ function AboutSettings({ appInfo }: { appInfo: AppInfo | null }) {
           <p className="mt-3 max-w-[430px] text-[11.5px] leading-relaxed text-[var(--cds-text-secondary)]">
             一个安静、原生、可以长期使用的 AI 工作台。数据保存在本机，API 密钥通过 macOS 钥匙串加密。
           </p>
+          <p className="mt-2 text-[11px] text-[var(--cds-text-muted)]">任务运行时：DeepSeek Harness {appInfo?.harnessVersion ?? '0.2.2-rc.1'} · MIT License</p>
         </div>
       </div>
 

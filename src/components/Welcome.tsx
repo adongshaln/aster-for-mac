@@ -29,7 +29,7 @@ export function Welcome() {
             {greeting(settings?.userName ?? '')}
           </h1>
           <p className="mt-2.5 max-w-[460px] text-[13px] leading-relaxed text-[var(--cds-text-secondary)]">
-            今天想构建些什么？Aster Mac 已内置 DeepSeek Harness 原生桌面工具集、实时并发联网与右侧产物工作台。
+            今天想聊些什么，或交给 Aster 一个任务？
           </p>
         </div>
 

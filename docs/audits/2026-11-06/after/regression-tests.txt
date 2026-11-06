@@ -1,0 +1,57 @@
+
+> aster-mac@4.4.0 pretest
+> npm run build:electron
+
+
+> aster-mac@4.4.0 build:electron
+> tsc -p tsconfig.electron.json
+
+
+> aster-mac@4.4.0 test
+> node --test tests/*.test.cjs
+
+✔ Chat Completions consumes usage after finish_reason, across network chunks (12.542ms)
+✔ partial EOF is rejected and never emits done or executes incomplete tool calls (0.906958ms)
+✔ length-limited text remains continuable instead of reporting success (0.223541ms)
+✔ execution rejects tools omitted from the request and destructive calls in plan-only mode (0.404041ms)
+✔ server tool calls cannot bypass disabled Harness at the chat boundary (0.372625ms)
+✔ approval and question registries settle and remove entries on cancel (0.283125ms)
+✔ cancelled tool never writes when a delayed approval arrives (0.232625ms)
+✔ cancelled question stops waiting even if its callback never settles (0.173583ms)
+✔ terminal returns normal output and nonzero exit codes (5.978208ms)
+✔ terminal cancellation kills descendants, including ones ignoring SIGTERM (1205.937917ms)
+✔ literal edit preserves replacement dollar sequences (0.785875ms)
+✔ glob matches nested paths and grep supports an explicit file and include patterns (2.611375ms)
+✔ Anthropic replays ordered thinking, signatures and redacted blocks and totals cached input (0.827417ms)
+✔ Responses tool continuation retains response id and function call output (0.422458ms)
+✔ existing pure-mode serialization still decodes its display stream (0.826833ms)
+✔ native dsh completes 24 tool steps, restores full history and forks regeneration (5370.888708ms)
+✔ native tools enforce read-only policy and publish artifacts (2176.4745ms)
+✔ approval cancellation settles the real runtime and prevents the write (956.000834ms)
+✔ native provider retries a transient 429 (1423.936125ms)
+✔ native subagents keep tools and account for child usage (2009.685875ms)
+✔ native background job completes beyond the former 30 second timeout (32044.95675ms)
+✔ native context compression and enabled web tools load in the real deployment (2116.969792ms)
+✔ native Anthropic and Responses adapters retain configured routes and stream output (2329.530125ms)
+✔ image IPC uses the explicit service and refuses missing services without fallback (15.005666ms)
+✔ chat stop settles pending approvals and releases the request id (7.855875ms)
+✔ deleting a conversation removes its native runtime history and preserves other conversations (1.236541ms)
+✔ artifact export writes the chosen file and respects a cancelled save dialog (0.25ms)
+✔ empty view and model selection use the configured default service (0.804167ms)
+✔ deleted service blocks sends until the user explicitly rebinds the conversation (0.484459ms)
+✔ images carry the same service shown for the conversation, despite another default (0.29975ms)
+✔ multiple questions preserve partial answers and submit exactly one complete answer map (0.531ms)
+✔ stop keeps the request active until the main process finishes cancelling (0.222ms)
+✔ model refresh preserves settings saved during the network request (2.889583ms)
+✔ late model refresh does not resurrect a deleted service or change another conversation (0.592041ms)
+✔ GitHub tree skills install scripts and assets without a duplicate main segment (15.961958ms)
+✔ an incomplete skill installation removes its partial directory (4.269709ms)
+✔ line diff aligns context after a leading insertion (0.394709ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48609.556875

@@ -34,6 +34,7 @@ export interface PendingUserQuestionPrompt {
   requestId: string
   callId: string
   questions: AskUserQuestionItem[]
+  answers: Record<string, string>
 }
 
 interface ActiveRequest {
@@ -76,6 +77,7 @@ interface AppState {
   chooseModel(model: string): Promise<void>
   chooseEffort(effort: string): Promise<void>
   setActiveProfile(profileId: string): Promise<void>
+  setConversationProfile(profileId: string): void
   setTheme(theme: ThemeMode): Promise<void>
   updateSettings(partial: Partial<AppConfig['settings']>): Promise<void>
   pickWorkspaceDirectory(): Promise<void>
@@ -100,7 +102,7 @@ interface AppState {
   togglePin(id: string): void
   renameConversation(id: string, title: string): void
   sendMessage(text: string, attachments: Attachment[]): Promise<void>
-  stopGeneration(): void
+  stopGeneration(): Promise<void>
   regenerateLast(): Promise<void>
   continueLast(): Promise<void>
   openSettings(section?: SettingsSection): void
@@ -151,7 +153,7 @@ function markOrphanedStreams(conversations: Conversation[]): Conversation[] {
 }
 
 function profileFor(config: AppConfig | null, profileId: string): Profile | undefined {
-  return config?.profiles.find(profile => profile.id === profileId) ?? config?.profiles[0]
+  return config?.profiles.find(profile => profile.id === (profileId || config.activeProfileId))
 }
 
 function historyFor(conversation: Conversation, excludeId?: string, extra?: ChatTurn[]): ChatTurn[] {
@@ -387,6 +389,7 @@ export const useAppStore = create<AppState>((set, get) => {
           requestId: event.requestId,
           callId: event.callId,
           questions: event.questions,
+          answers: {},
         },
       })
       return
@@ -466,6 +469,7 @@ export const useAppStore = create<AppState>((set, get) => {
         ? activePreset!.entries.filter(e => e.enabled && e.content.trim().length > 0)
         : []
       await window.aster.chat.start({
+        conversationId: conversation.id,
         requestId,
         profileId: profile.id,
         model,
@@ -598,6 +602,21 @@ export const useAppStore = create<AppState>((set, get) => {
       await get().saveConfig(config)
     },
 
+    setConversationProfile: profileId => {
+      const state = get()
+      const profile = state.config?.profiles.find(item => item.id === profileId)
+      if (!profile || !state.activeId) return
+      if (state.activeRequest?.conversationId === state.activeId) {
+        state.showToast('请先停止当前生成再切换服务', 'info')
+        return
+      }
+      set({ conversations: state.conversations.map(conversation => conversation.id === state.activeId
+        ? { ...conversation, profileId, model: profile.chatModel || profile.models[0]?.id || '' }
+        : conversation) })
+      schedulePersist(0)
+      state.showToast(`此对话已改用 ${profile.name}`, 'success')
+    },
+
     setTheme: async theme => {
       const state = get()
       if (!state.config) return
@@ -728,8 +747,16 @@ export const useAppStore = create<AppState>((set, get) => {
     resolveUserQuestion: async answers => {
       const pending = get().pendingQuestion
       if (!pending) return
+      const merged = { ...pending.answers }
+      for (const question of pending.questions) {
+        if (answers[question.id]?.trim()) merged[question.id] = answers[question.id].trim()
+      }
+      if (!pending.questions.every(question => merged[question.id])) {
+        set({ pendingQuestion: { ...pending, answers: merged } })
+        return
+      }
       set({ pendingQuestion: null })
-      await window.aster.chat.answerQuestion(pending.requestId, pending.callId, answers)
+      await window.aster.chat.answerQuestion(pending.requestId, pending.callId, merged)
     },
 
     createConversation: () => {
@@ -813,7 +840,7 @@ export const useAppStore = create<AppState>((set, get) => {
       const profile = profileFor(get().config, conversation.profileId)
       if (!profile) {
         get().openSettings('services')
-        get().showToast('请先配置一个 API 服务', 'error')
+        get().showToast('会话对应的服务不存在，请在模型服务设置中为此对话选择服务', 'error')
         return
       }
       const model = conversation.model || profile.chatModel || profile.models[0]?.id || ''
@@ -866,19 +893,18 @@ export const useAppStore = create<AppState>((set, get) => {
       })
     },
 
-    stopGeneration: () => {
+    stopGeneration: async () => {
       const active = get().activeRequest
       if (!active) return
       set({ pendingApproval: null, pendingQuestion: null })
-      void window.aster.chat.stop(active.requestId)
+      await window.aster.chat.stop(active.requestId)
       finishRequest(active.requestId, 'stopped')
     },
 
     regenerateLast: async () => {
       const state = get()
       if (state.activeRequest) {
-        state.stopGeneration()
-        await new Promise(resolve => setTimeout(resolve, 60))
+        await state.stopGeneration()
       }
       const current = get()
       const conversation = current.conversations.find(item => item.id === current.activeId)
@@ -955,7 +981,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
     generateImage: async (prompt, model, size) => {
       const state = get()
-      const profile = profileFor(state.config, state.config?.activeProfileId ?? '')
+      const profile = activeProfile(state)
       if (!profile) throw new Error('请先配置模型服务')
       if (!prompt.trim()) throw new Error('请输入图片提示词')
       if (!model.trim()) throw new Error('请选择图片模型')
@@ -968,7 +994,7 @@ export const useAppStore = create<AppState>((set, get) => {
       if (!conversation) throw new Error('无法创建对话')
       const conversationId = conversation.id
 
-      const result = await window.aster.images.generate({ prompt: prompt.trim(), model: model.trim(), size })
+      const result = await window.aster.images.generate({ profileId: profile.id, prompt: prompt.trim(), model: model.trim(), size })
       const message: ChatMessage = {
         id: uid(),
         role: 'assistant',

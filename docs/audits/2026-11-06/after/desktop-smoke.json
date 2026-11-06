@@ -1,0 +1,13 @@
+{
+  "result": "passed",
+  "tmp": "/var/folders/c5/b_l3tbdj7yn29zbzq7hnxpk00000gn/T/aster-desktop-smoke-xTCsDV",
+  "checks": [
+    "packaged app launch",
+    "multi-question UI keeps partial answer",
+    "combined answers resume generation",
+    "conversation service routing",
+    "image IPC service routing",
+    "tail usage persisted: 42 tokens"
+  ],
+  "screenshot": "/var/folders/c5/b_l3tbdj7yn29zbzq7hnxpk00000gn/T/aster-desktop-smoke-xTCsDV/multiple-questions.png"
+}

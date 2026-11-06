@@ -40,14 +40,14 @@ export function ChatView() {
 
   if (!conversation || messages.length === 0) {
     return (
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
         <Welcome />
       </div>
     )
   }
 
   return (
-    <div className="relative flex min-h-0 flex-1 flex-col bg-transparent">
+    <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-transparent">
       <div
         ref={containerRef}
         onScroll={handleScroll}

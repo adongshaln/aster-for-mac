@@ -1,7 +1,9 @@
-import { exec } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { Minimatch } from 'minimatch'
+import { withAbort } from './async'
 import type {
   ArtifactItem,
   AskUserQuestionItem,
@@ -30,6 +32,7 @@ export interface ToolExecutionContext {
   profile: Profile
   apiKey: string
   permissionMode: PermissionMode
+  allowedToolNames: ReadonlySet<string>
   skills: InstalledSkill[]
   signal: AbortSignal
   emitActivity: (activity: ToolActivity) => void
@@ -322,6 +325,17 @@ export async function executeHarnessToolCall(
   call: PendingToolCall,
   ctx: ToolExecutionContext,
 ): Promise<string> {
+  ctx.signal.throwIfAborted()
+  const aliases: Record<string, string> = { search_web: 'web_search', fetch_web: 'web_fetch' }
+  const toolName = aliases[call.name] ?? call.name
+  if (
+    !ctx.allowedToolNames.has(toolName) ||
+    (ctx.permissionMode === 'plan-only' && DESTRUCTIVE_TOOLS.has(toolName))
+  ) {
+    const error = `当前权限或工具设置不允许执行 ${call.name}`
+    ctx.emitActivity({ id: call.id, name: call.name, label: error, status: 'failed', output: error })
+    return JSON.stringify({ ok: false, error: 'tool_not_allowed', message: error })
+  }
   const startedAt = performance.now()
   let args: Record<string, unknown> = {}
   try {
@@ -347,7 +361,8 @@ export async function executeHarnessToolCall(
   ) {
     const pendingActivity: ToolActivity = { ...initialActivity, status: 'pending_approval' }
     ctx.emitActivity(pendingActivity)
-    const decision = await ctx.requestApproval(call.id, pendingActivity)
+    const decision = await withAbort(ctx.requestApproval(call.id, pendingActivity), ctx.signal)
+    ctx.signal.throwIfAborted()
     if (decision === 'always_allow') {
       alwaysAllowedTools.add(call.name)
     } else if (decision === 'deny') {
@@ -363,6 +378,7 @@ export async function executeHarnessToolCall(
     }
   }
 
+  ctx.signal.throwIfAborted()
   ctx.emitActivity(initialActivity)
 
   try {
@@ -457,7 +473,7 @@ export async function executeHarnessToolCall(
         }
         const newText = replaceAll
           ? oldText.split(oldString).join(newString)
-          : oldText.replace(oldString, newString)
+          : oldText.replace(oldString, () => newString)
         fs.writeFileSync(filePath, newText, 'utf8')
         const diff = { filename: path.basename(filePath), oldText, newText }
         ctx.emitArtifact({
@@ -575,7 +591,9 @@ export async function executeHarnessToolCall(
           label: `等待你的选择：${questions[0]?.question.slice(0, 22) ?? ''}`,
           status: 'running',
         })
-        const answers = await ctx.requestAskUser(call.id, questions)
+        if (!questions.length) throw new Error('至少需要提供一个问题')
+        const answers = await withAbort(ctx.requestAskUser(call.id, questions), ctx.signal)
+        ctx.signal.throwIfAborted()
         ctx.emitActivity({
           ...initialActivity,
           label: `已收到回答`,
@@ -650,6 +668,7 @@ export async function executeHarnessToolCall(
         throw new Error(`未知工具：${call.name}`)
     }
   } catch (error) {
+    if (ctx.signal.aborted) throw error
     const msg = error instanceof Error ? error.message : String(error)
     ctx.emitActivity({
       ...initialActivity,
@@ -944,7 +963,12 @@ function decodeXml(input: string): string {
 
 function walkFiles(rootDir: string, pattern: string, maxResults: number): string[] {
   const results: string[] = []
-  const normalizedPattern = pattern.replace(/^\*\*?\//, '').replace(/\*/g, '').toLowerCase()
+  const matcher = new Minimatch(pattern.replace(/^\.\//, '') || '**/*', {
+    matchBase: true,
+    dot: true,
+    nocomment: true,
+    nonegate: true,
+  })
   const skipDirs = new Set(['.git', 'node_modules', 'dist', 'dist-electron', 'release', 'build', '.next', '.gradle'])
 
   function visit(dir: string, depth: number) {
@@ -963,7 +987,7 @@ function walkFiles(rootDir: string, pattern: string, maxResults: number): string
         if (!skipDirs.has(entry.name)) visit(full, depth + 1)
       } else if (entry.isFile()) {
         const rel = path.relative(rootDir, full)
-        if (!normalizedPattern || rel.toLowerCase().includes(normalizedPattern)) {
+        if (matcher.match(rel)) {
           results.push(rel)
         }
       }
@@ -982,12 +1006,15 @@ function grepFiles(rootDir: string, pattern: string, include: string | undefined
   } catch {
     regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
   }
-  const extFilter = include ? include.replace(/^\*/, '').toLowerCase() : ''
-  const files = walkFiles(rootDir, extFilter || '*', 300)
+  const isFile = fs.statSync(rootDir).isFile()
+  const baseDir = isFile ? path.dirname(rootDir) : rootDir
+  const files = isFile
+    ? [path.basename(rootDir)].filter(file => !include || new Minimatch(include, { matchBase: true, dot: true }).match(file))
+    : walkFiles(rootDir, include || '**/*', 300)
 
   for (const rel of files) {
     if (matches.length >= maxMatches) break
-    const full = path.join(rootDir, rel)
+    const full = path.join(baseDir, rel)
     try {
       const stat = fs.statSync(full)
       if (stat.size > 512_000) continue
@@ -1012,68 +1039,54 @@ function runBashCommand(
   workdir: string,
   signal: AbortSignal,
 ): Promise<{ output: string; exitCode: number }> {
-  return new Promise(resolve => {
+  signal.throwIfAborted()
+  return new Promise((resolve, reject) => {
     const cleanEnv: NodeJS.ProcessEnv = { ...process.env, TERM: 'dumb' }
     delete cleanEnv.ELECTRON_RUN_AS_NODE
-    const child = exec(
-      command,
-      {
-        cwd: fs.existsSync(workdir) ? workdir : os.homedir(),
-        timeout: 30_000,
-        maxBuffer: 2 * 1024 * 1024,
-        env: cleanEnv,
-      },
-      (error, stdout, stderr) => {
-        const combined = [stdout, stderr].filter(Boolean).join('\n').trim()
-        const exitCode = error && typeof error.code === 'number' ? error.code : error ? 1 : 0
-        resolve({
-          output: combined.slice(-8000) || (error ? error.message : '(no output)'),
-          exitCode,
-        })
-      },
-    )
-    const onAbort = () => {
-      child.kill('SIGTERM')
+    const child = spawn('/bin/bash', ['-c', command], {
+      cwd: workdir,
+      env: cleanEnv,
+      detached: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    let output = ''
+    let outputBytes = 0
+    let failure = ''
+    let killTimer: ReturnType<typeof setTimeout> | undefined
+    const killGroup = (killSignal: NodeJS.Signals) => {
+      if (!child.pid) return
+      try { process.kill(-child.pid, killSignal) } catch { /* process group already exited */ }
     }
+    const terminate = () => {
+      if (killTimer) return
+      killGroup('SIGTERM')
+      killTimer = setTimeout(() => killGroup('SIGKILL'), 250)
+    }
+    const onAbort = () => terminate()
+    const timeout = setTimeout(() => { failure = '命令执行超过 30 秒'; terminate() }, 30_000)
+    const collect = (data: string) => {
+      outputBytes += Buffer.byteLength(data, 'utf8')
+      output = (output + data).slice(-8000)
+      if (outputBytes > 2 * 1024 * 1024) { failure = '命令输出超过 2 MB'; terminate() }
+    }
+    child.stdout.setEncoding('utf8').on('data', collect)
+    child.stderr.setEncoding('utf8').on('data', collect)
+    const cleanup = () => {
+      clearTimeout(timeout)
+      signal.removeEventListener('abort', onAbort)
+      if (killTimer) {
+        // A shell can exit before its descendants. Finish the process group too.
+        clearTimeout(killTimer)
+        killGroup('SIGKILL')
+      }
+    }
+    child.once('error', error => { cleanup(); reject(error) })
+    child.once('close', code => {
+      cleanup()
+      if (signal.aborted) { reject(signal.reason); return }
+      resolve({ output: [output.trim(), failure].filter(Boolean).join('\n') || '(no output)', exitCode: failure ? 1 : code ?? 1 })
+    })
     signal.addEventListener('abort', onAbort, { once: true })
-    child.on('exit', () => signal.removeEventListener('abort', onAbort))
+    if (signal.aborted) onAbort()
   })
-}
-
-export async function fetchSkillFromGitHubUrl(rawUrl: string): Promise<InstalledSkill> {
-  let targetUrl = rawUrl.trim()
-  if (!/^https?:\/\//i.test(targetUrl)) {
-    throw new Error('请输入有效的 HTTP/HTTPS Skill 地址')
-  }
-  // Convert GitHub repo/blob URL to raw SKILL.md URL if needed
-  if (targetUrl.includes('github.com') && !targetUrl.includes('raw.githubusercontent.com')) {
-    targetUrl = targetUrl
-      .replace('https://github.com/', 'https://raw.githubusercontent.com/')
-      .replace('/blob/', '/')
-      .replace('/tree/', '/')
-    if (!targetUrl.endsWith('.md')) {
-      targetUrl = `${targetUrl.replace(/\/+$/, '')}/main/SKILL.md`
-    }
-  }
-  const res = await fetch(targetUrl, {
-    headers: { 'User-Agent': DESKTOP_UA },
-    signal: AbortSignal.timeout(12_000),
-  })
-  if (!res.ok) throw new Error(`拉取 Skill 失败（HTTP ${res.status}）`)
-  const content = await res.text()
-  if (!content.trim()) throw new Error('Skill 内容为空')
-
-  const nameMatch = /^name:\s*(.+)$/m.exec(content) || /^#\s+(.+)$/m.exec(content)
-  const descMatch = /^description:\s*(.+)$/m.exec(content)
-  const fallbackName = targetUrl.split('/').filter(Boolean).slice(-2, -1)[0] || 'custom-skill'
-
-  return {
-    id: `skill-${Date.now()}`,
-    name: (nameMatch?.[1] ?? fallbackName).trim().replace(/^['"]|['"]$/g, '').slice(0, 48),
-    description: (descMatch?.[1] ?? '自定义扩展技能').trim().replace(/^['"]|['"]$/g, '').slice(0, 140),
-    sourceUrl: rawUrl.trim(),
-    content: content.slice(0, 32_000),
-    enabled: true,
-    installedAt: Date.now(),
-  }
 }

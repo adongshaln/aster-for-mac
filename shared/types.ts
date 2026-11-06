@@ -74,6 +74,7 @@ export interface InstalledSkill {
   content: string
   enabled: boolean
   installedAt: number
+  localPath?: string
 }
 
 export interface AppSettings {
@@ -213,6 +214,7 @@ export interface ChatTurn {
 }
 
 export interface ChatRequest {
+  conversationId?: string
   requestId: string
   profileId: string
   model: string
@@ -255,6 +257,7 @@ export interface ModelFetchResult {
 }
 
 export interface ImageRequest {
+  profileId: string
   prompt: string
   model: string
   size: string
@@ -286,6 +289,7 @@ export interface WindowState {
 
 export interface AppInfo {
   version: string
+  harnessVersion?: string
   electron: string
   chrome: string
   dataDir: string
@@ -333,5 +337,6 @@ export interface AsterApi {
     openExternal(url: string): Promise<void>
     openDataDir(): Promise<void>
     showItemInFolder(path: string): Promise<void>
+    exportArtifact(artifact: ArtifactItem): Promise<string | null>
   }
 }

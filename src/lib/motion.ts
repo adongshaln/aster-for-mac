@@ -185,11 +185,17 @@ export const motionPopover: Variants = {
   },
 };
 
-/** 模态对话框居中缩放进入 */
+/**
+ * 模态对话框居中缩放进入。
+ *
+ * 这里刻意不驱动面板的 opacity：在 macOS + Electron 的无边框/透明窗口上，
+ * 对整块 920×660 的面板做 opacity 动画结束时，WindowServer 会偶发地
+ * 复用旧表面一帧，表现为弹窗瞬间“消失/闪一下”。缩放与位移走合成层
+ * 不受影响，背景遮罩仍由 CSS 单独淡入。
+ */
 export const motionModalDialog: Variants = {
-  initial: { opacity: 0, scale: 0.96, y: 10 },
+  initial: { scale: 0.96, y: 10 },
   animate: {
-    opacity: 1,
     scale: 1,
     y: 0,
     transition: {
@@ -199,7 +205,6 @@ export const motionModalDialog: Variants = {
     },
   },
   exit: {
-    opacity: 0,
     scale: 0.96,
     y: 6,
     transition: { duration: 0.15, ease: "easeInOut" },

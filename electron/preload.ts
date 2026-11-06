@@ -52,6 +52,7 @@ const api: AsterApi = {
     openExternal: (url: string) => ipcRenderer.invoke('app:openExternal', url),
     openDataDir: () => ipcRenderer.invoke('app:openDataDir'),
     showItemInFolder: (target: string) => ipcRenderer.invoke('app:showItemInFolder', target),
+    exportArtifact: (artifact: import('../shared/types').ArtifactItem) => ipcRenderer.invoke('app:exportArtifact', artifact),
   },
 }
 

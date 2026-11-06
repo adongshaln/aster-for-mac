@@ -51,6 +51,7 @@ function AppShell() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (document.querySelector('[aria-modal="true"]')) return
       const meta = event.metaKey || event.ctrlKey
       if (meta && event.key.toLowerCase() === 'n') {
         event.preventDefault()
@@ -119,10 +120,11 @@ function AppShell() {
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <div className="flex min-h-0 flex-1 flex-col">
           <TopBar />
-          <div className="flex min-h-0 flex-1 overflow-hidden">
+          <div className="workspace-layout relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
             <ChatView />
             {activeArtifact && (
               <ArtifactPane
+                key={activeArtifact.id}
                 artifact={activeArtifact}
                 onClose={() => setActiveArtifact(null)}
               />

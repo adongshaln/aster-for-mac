@@ -54,7 +54,7 @@ function UserMessage({ message }: { message: ChatMessage }) {
     <div className="group/user flex flex-col items-end gap-1.5 py-2">
       {message.attachments.length > 0 && <MessageImages attachments={message.attachments} align="end" />}
       <div className="relative max-w-[82%]">
-        <div className="rounded-[18px] border border-[var(--cds-border)] bg-[var(--cds-bg-user-message)] px-4 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <div className="rounded-bubble border border-[var(--cds-border)] bg-[var(--cds-bg-user-message)] px-4 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
           <div
             className={cn(
               'relative overflow-hidden whitespace-pre-wrap break-words text-[14px] leading-[1.65] text-[var(--cds-text-primary)] select-text',

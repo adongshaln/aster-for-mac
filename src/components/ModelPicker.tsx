@@ -1,11 +1,10 @@
 import { Check, ChevronDown, RefreshCw, Search, Zap } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { Popover } from '@/components/ui/Popover'
-import { useAppStore, activeConversation, activeProfile, conversationTokens } from '@/state/store'
+import { useAppStore, activeConversation, activeProfile } from '@/state/store'
 import { cn } from '@/lib/utils'
 
 export function ModelPicker({ compact = false }: { compact?: boolean }) {
-  const config = useAppStore(state => state.config)
   const profile = useAppStore(activeProfile)
   const conversation = useAppStore(activeConversation)
   const chooseModel = useAppStore(state => state.chooseModel)
@@ -26,28 +25,21 @@ export function ModelPicker({ compact = false }: { compact?: boolean }) {
       : models
   }, [models, query])
 
-  const tokens = conversationTokens(conversation)
-  const limit = profile?.contextLimit || 128_000
-  const ratio = Math.min(1, tokens / limit)
-  const circumference = 2 * Math.PI * 8
-
   const refresh = async () => {
     if (!profile) return
     setLoading(true)
     try {
       const result = await window.aster.models.fetch(profile.id)
-      if (config) {
+      const config = useAppStore.getState().config
+      if (config?.profiles.some(item => item.id === profile.id)) {
         await saveConfig({
           ...config,
           profiles: config.profiles.map(item => (
             item.id === profile.id
-              ? { ...item, models: result.models, lastLatencyMs: result.latencyMs }
+              ? { ...item, models: result.models, lastLatencyMs: result.latencyMs, chatModel: item.chatModel || result.models[0]?.id || '' }
               : item
           )),
         })
-      }
-      if (!model && result.models[0]) {
-        await chooseModel(result.models[0].id)
       }
       showToast(`已拉取 ${result.models.length} 个模型 · ${result.latencyMs} ms`, 'success')
     } catch (error) {
@@ -80,23 +72,6 @@ export function ModelPicker({ compact = false }: { compact?: boolean }) {
       >
         <Zap size={11} className="shrink-0 text-clay" />
         <span className="max-w-[160px] truncate">{model || '选择模型'}</span>
-        <span className="relative ml-0.5 flex size-[16px] shrink-0 items-center justify-center" title={`上下文约 ${Math.round(tokens / 1000)}K / ${Math.round(limit / 1000)}K`}>
-          <svg className="size-[16px] -rotate-90" viewBox="0 0 20 20">
-            <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--cds-border-strong)]" />
-            <circle
-              cx="10"
-              cy="10"
-              r="8"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - ratio)}
-              strokeLinecap="round"
-              className={cn(ratio > 0.8 ? 'text-clay' : 'text-emerald-500/80')}
-            />
-          </svg>
-        </span>
         <ChevronDown size={11} className={cn('shrink-0 opacity-60 transition-transform', open && 'rotate-180')} />
       </button>
 

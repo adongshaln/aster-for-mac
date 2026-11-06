@@ -1,0 +1,164 @@
+{
+  "tmp": "/var/folders/c5/b_l3tbdj7yn29zbzq7hnxpk00000gn/T/aster-visual-audit-2qDtaX",
+  "observations": {
+    "light-chat-1280": {
+      "width": 1280,
+      "height": 840,
+      "bodyFont": "ui-serif, \"New York\", Georgia, \"Songti SC\", STSong, serif",
+      "bodySize": "16px",
+      "background": "rgb(250, 249, 245)",
+      "send": {
+        "x": 1117,
+        "y": 758,
+        "width": 32,
+        "height": 32,
+        "right": 1149,
+        "bottom": 790
+      },
+      "textarea": {
+        "x": 395,
+        "y": 708,
+        "width": 754,
+        "height": 44,
+        "right": 1149,
+        "bottom": 752
+      },
+      "horizontalOverflow": false,
+      "offscreenButtons": []
+    },
+    "light-artifact-1280": {
+      "width": 1280,
+      "height": 840,
+      "bodyFont": "ui-serif, \"New York\", Georgia, \"Songti SC\", STSong, serif",
+      "bodySize": "16px",
+      "background": "rgb(250, 249, 245)",
+      "send": {
+        "x": 771,
+        "y": 758,
+        "width": 32,
+        "height": 32,
+        "right": 803,
+        "bottom": 790
+      },
+      "textarea": {
+        "x": 301,
+        "y": 708,
+        "width": 502,
+        "height": 44,
+        "right": 803,
+        "bottom": 752
+      },
+      "horizontalOverflow": false,
+      "offscreenButtons": []
+    },
+    "mermaid-rendering": {
+      "iframes": 0,
+      "codeShown": false
+    },
+    "light-artifact-940": {
+      "width": 940,
+      "height": 620,
+      "bodyFont": "ui-serif, \"New York\", Georgia, \"Songti SC\", STSong, serif",
+      "bodySize": "16px",
+      "background": "rgb(250, 249, 245)",
+      "send": {
+        "x": 871,
+        "y": 538,
+        "width": 32,
+        "height": 32,
+        "right": 903,
+        "bottom": 570
+      },
+      "textarea": {
+        "x": 301,
+        "y": 488,
+        "width": 602,
+        "height": 44,
+        "right": 903,
+        "bottom": 532
+      },
+      "horizontalOverflow": false,
+      "offscreenButtons": []
+    },
+    "light-chat-940": {
+      "width": 940,
+      "height": 620,
+      "bodyFont": "ui-serif, \"New York\", Georgia, \"Songti SC\", STSong, serif",
+      "bodySize": "16px",
+      "background": "rgb(250, 249, 245)",
+      "send": {
+        "x": 871,
+        "y": 538,
+        "width": 32,
+        "height": 32,
+        "right": 903,
+        "bottom": 570
+      },
+      "textarea": {
+        "x": 301,
+        "y": 488,
+        "width": 602,
+        "height": 44,
+        "right": 903,
+        "bottom": 532
+      },
+      "horizontalOverflow": false,
+      "offscreenButtons": []
+    },
+    "dark-chat-940": {
+      "width": 940,
+      "height": 620,
+      "bodyFont": "ui-serif, \"New York\", Georgia, \"Songti SC\", STSong, serif",
+      "bodySize": "16px",
+      "background": "rgb(30, 30, 28)",
+      "send": {
+        "x": 871,
+        "y": 538,
+        "width": 32,
+        "height": 32,
+        "right": 903,
+        "bottom": 570
+      },
+      "textarea": {
+        "x": 301,
+        "y": 488,
+        "width": 602,
+        "height": 44,
+        "right": 903,
+        "bottom": 532
+      },
+      "horizontalOverflow": false,
+      "offscreenButtons": []
+    },
+    "dark-settings-940": {
+      "width": 940,
+      "height": 620,
+      "bodyFont": "ui-serif, \"New York\", Georgia, \"Songti SC\", STSong, serif",
+      "bodySize": "16px",
+      "background": "rgb(30, 30, 28)",
+      "send": {
+        "x": 871,
+        "y": 538,
+        "width": 32,
+        "height": 32,
+        "right": 903,
+        "bottom": 570
+      },
+      "textarea": {
+        "x": 301,
+        "y": 488,
+        "width": 602,
+        "height": 44,
+        "right": 903,
+        "bottom": 532
+      },
+      "horizontalOverflow": false,
+      "offscreenButtons": []
+    },
+    "modal-accessibility": {
+      "dialogs": 1,
+      "ariaModal": 1,
+      "focusTag": "BUTTON"
+    }
+  }
+}

@@ -2,6 +2,7 @@ import {
   Check,
   Code2,
   Copy,
+  Download,
   ExternalLink,
   Eye,
   FileCode2,
@@ -13,35 +14,11 @@ import {
 import { useMemo, useState } from 'react'
 import type { ArtifactItem } from '@shared/types'
 import { CodeBlock } from '@/components/CodeBlock'
+import { Markdown } from '@/components/Markdown'
+import { MermaidPreview } from '@/components/MermaidPreview'
+import { buildLineDiff } from '@/lib/diff'
 import { cn, copyText } from '@/lib/utils'
-
-interface DiffRow {
-  type: 'context' | 'add' | 'del'
-  oldNum?: number
-  newNum?: number
-  text: string
-}
-
-function buildLineDiff(oldText: string, newText: string): DiffRow[] {
-  const oldLines = oldText.split('\n')
-  const newLines = newText.split('\n')
-  const rows: DiffRow[] = []
-  const maxLen = Math.max(oldLines.length, newLines.length)
-  let o = 1
-  let n = 1
-  for (let i = 0; i < maxLen; i++) {
-    const oldL = oldLines[i]
-    const newL = newLines[i]
-    if (oldL === newL && oldL !== undefined) {
-      rows.push({ type: 'context', oldNum: o++, newNum: n++, text: oldL })
-    } else {
-      if (oldL !== undefined) rows.push({ type: 'del', oldNum: o++, text: oldL })
-      if (newL !== undefined) rows.push({ type: 'add', newNum: n++, text: newL })
-    }
-    if (rows.length > 600) break
-  }
-  return rows
-}
+import { useAppStore } from '@/state/store'
 
 export function ArtifactPane({
   artifact,
@@ -74,7 +51,7 @@ export function ArtifactPane({
   return (
     <aside
       className={cn(
-        'flex h-full shrink-0 flex-col border-l border-[var(--cds-border)] bg-[var(--cds-surface-1)] transition-[width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]',
+        'artifact-pane flex h-full min-w-0 shrink-0 flex-col border-l border-[var(--cds-border)] bg-[var(--cds-surface-1)] transition-[width] duration-200',
         expanded ? 'w-[62%]' : 'w-[440px]',
       )}
     >
@@ -90,7 +67,7 @@ export function ArtifactPane({
           </div>
         </div>
 
-        {(artifact.kind === 'html' || artifact.kind === 'svg') && (
+        {artifact.kind !== 'code' && artifact.kind !== 'diff' && (
           <div className="flex items-center rounded-[7px] bg-[var(--cds-fill-ghost-hover)] p-0.5 text-[11px]">
             <button
               type="button"
@@ -135,6 +112,10 @@ export function ArtifactPane({
           {copied ? <Check size={13} className="text-clay" /> : <Copy size={13} />}
         </button>
 
+        <button type="button" onClick={() => void window.aster.app.exportArtifact(artifact).catch(error => useAppStore.getState().showToast(error instanceof Error ? error.message : String(error), 'error'))} className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[var(--cds-text-secondary)] hover:bg-[var(--cds-fill-ghost-hover)]" title="另存为文件">
+          <Download size={13} />
+        </button>
+
         {artifact.filename && (
           <button
             type="button"
@@ -149,7 +130,7 @@ export function ArtifactPane({
         <button
           type="button"
           onClick={() => setExpanded(v => !v)}
-          className="flex size-7 items-center justify-center rounded-lg text-[var(--cds-text-secondary)] hover:bg-[var(--cds-fill-ghost-hover)] hover:text-[var(--cds-text-primary)]"
+          className="artifact-expand flex size-7 shrink-0 items-center justify-center rounded-lg text-[var(--cds-text-secondary)] hover:bg-[var(--cds-fill-ghost-hover)] hover:text-[var(--cds-text-primary)]"
           title={expanded ? '恢复宽度' : '加宽分栏'}
         >
           {expanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
@@ -169,7 +150,7 @@ export function ArtifactPane({
       <div className="scroll-quiet min-h-0 flex-1 overflow-auto">
         {artifact.kind === 'diff' ? (
           <div className="font-mono text-[11.5px] leading-[1.6]">
-            {diffRows.map((row, idx) => (
+            {diffRows.slice(0, 1200).map((row, idx) => (
               <div
                 key={idx}
                 className={cn(
@@ -190,6 +171,7 @@ export function ArtifactPane({
                 <span className="min-w-0 flex-1 whitespace-pre-wrap break-all">{row.text}</span>
               </div>
             ))}
+            {diffRows.length > 1200 && <p className="p-3 text-[var(--cds-text-muted)]">仅展示前 1200 行；另存为文件可查看完整差异。</p>}
           </div>
         ) : (artifact.kind === 'html' || artifact.kind === 'svg') && mode === 'preview' ? (
           <iframe
@@ -198,6 +180,10 @@ export function ArtifactPane({
             sandbox="allow-scripts"
             className="h-full w-full border-0 bg-white"
           />
+        ) : artifact.kind === 'markdown' && mode === 'preview' ? (
+          <div className="p-5"><Markdown content={artifact.content} /></div>
+        ) : artifact.kind === 'mermaid' && mode === 'preview' ? (
+          <MermaidPreview content={artifact.content} />
         ) : (
           <div className="p-3">
             <CodeBlock code={artifact.content} language={artifact.language || artifact.kind} />

@@ -1,0 +1,210 @@
+{
+  "light-chat-1280": {
+    "width": 1280,
+    "height": 840,
+    "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Segoe UI\", sans-serif",
+    "bodySize": "14.5px",
+    "background": "rgba(249, 249, 247, 0.88)",
+    "send": {
+      "x": 1117,
+      "y": 758,
+      "width": 32,
+      "height": 32,
+      "right": 1149,
+      "bottom": 790
+    },
+    "textarea": {
+      "x": 395,
+      "y": 708,
+      "width": 754,
+      "height": 44,
+      "right": 1149,
+      "bottom": 752
+    },
+    "horizontalOverflow": false,
+    "offscreenButtons": []
+  },
+  "light-artifact-1280": {
+    "width": 1280,
+    "height": 840,
+    "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Segoe UI\", sans-serif",
+    "bodySize": "14.5px",
+    "background": "rgba(249, 249, 247, 0.88)",
+    "send": {
+      "x": 771,
+      "y": 743,
+      "width": 32,
+      "height": 32,
+      "right": 803,
+      "bottom": 775
+    },
+    "textarea": {
+      "x": 301,
+      "y": 693,
+      "width": 502,
+      "height": 44,
+      "right": 803,
+      "bottom": 737
+    },
+    "horizontalOverflow": false,
+    "offscreenButtons": []
+  },
+  "mermaid-rendering": {
+    "iframes": 0,
+    "codeShown": true
+  },
+  "light-artifact-940": {
+    "width": 940,
+    "height": 620,
+    "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Segoe UI\", sans-serif",
+    "bodySize": "14.5px",
+    "background": "rgba(249, 249, 247, 0.88)",
+    "send": {
+      "x": 634.546875,
+      "y": 523,
+      "width": 24.890625,
+      "height": 32,
+      "right": 659.4375,
+      "bottom": 555
+    },
+    "textarea": {
+      "x": 301,
+      "y": 473,
+      "width": 358.4375,
+      "height": 44,
+      "right": 659.4375,
+      "bottom": 517
+    },
+    "horizontalOverflow": false,
+    "offscreenButtons": [
+      {
+        "text": "",
+        "title": "复制内容",
+        "rect": {
+          "x": 1022.4375,
+          "y": 63.5,
+          "width": 28,
+          "height": 28,
+          "right": 1050.4375,
+          "bottom": 91.5
+        }
+      },
+      {
+        "text": "",
+        "title": "加宽分栏",
+        "rect": {
+          "x": 1058.4375,
+          "y": 63.5,
+          "width": 28,
+          "height": 28,
+          "right": 1086.4375,
+          "bottom": 91.5
+        }
+      },
+      {
+        "text": "",
+        "title": "关闭预览栏",
+        "rect": {
+          "x": 1094.4375,
+          "y": 63.5,
+          "width": 28,
+          "height": 28,
+          "right": 1122.4375,
+          "bottom": 91.5
+        }
+      },
+      {
+        "text": "复制",
+        "title": "",
+        "rect": {
+          "x": 1061.4375,
+          "y": 135.09375,
+          "width": 48,
+          "height": 24,
+          "right": 1109.4375,
+          "bottom": 159.09375
+        }
+      }
+    ]
+  },
+  "light-chat-940": {
+    "width": 940,
+    "height": 620,
+    "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Segoe UI\", sans-serif",
+    "bodySize": "14.5px",
+    "background": "rgba(249, 249, 247, 0.88)",
+    "send": {
+      "x": 871,
+      "y": 538,
+      "width": 32,
+      "height": 32,
+      "right": 903,
+      "bottom": 570
+    },
+    "textarea": {
+      "x": 301,
+      "y": 488,
+      "width": 602,
+      "height": 44,
+      "right": 903,
+      "bottom": 532
+    },
+    "horizontalOverflow": false,
+    "offscreenButtons": []
+  },
+  "dark-chat-940": {
+    "width": 940,
+    "height": 620,
+    "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Segoe UI\", sans-serif",
+    "bodySize": "14.5px",
+    "background": "rgba(15, 15, 14, 0.9)",
+    "send": {
+      "x": 871,
+      "y": 538,
+      "width": 32,
+      "height": 32,
+      "right": 903,
+      "bottom": 570
+    },
+    "textarea": {
+      "x": 301,
+      "y": 488,
+      "width": 602,
+      "height": 44,
+      "right": 903,
+      "bottom": 532
+    },
+    "horizontalOverflow": false,
+    "offscreenButtons": []
+  },
+  "dark-settings-940": {
+    "width": 940,
+    "height": 620,
+    "bodyFont": "-apple-system, \"system-ui\", \"SF Pro Text\", \"PingFang SC\", \"Hiragino Sans GB\", \"Segoe UI\", sans-serif",
+    "bodySize": "14.5px",
+    "background": "rgba(15, 15, 14, 0.9)",
+    "send": {
+      "x": 871,
+      "y": 538,
+      "width": 32,
+      "height": 32,
+      "right": 903,
+      "bottom": 570
+    },
+    "textarea": {
+      "x": 301,
+      "y": 488,
+      "width": 602,
+      "height": 44,
+      "right": 903,
+      "bottom": 532
+    },
+    "horizontalOverflow": false,
+    "offscreenButtons": []
+  },
+  "modal-accessibility": {
+    "dialogs": 0,
+    "ariaModal": 0,
+    "focusTag": "TEXTAREA"
+  }
+}
