@@ -13,7 +13,7 @@ import {
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import type { AppConfig, ChatRequest, ImageRequest, SaveAttachmentInput, ThemeMode } from '../shared/types'
+import type { AppConfig, ChatRequest, ExportImageRequest, ImageRequest, SaveAttachmentInput, ThemeMode } from '../shared/types'
 import { fetchModels, generateImage, readAttachmentMime, streamChat, type ChatEmitter } from './api'
 import { installSkillFromUrl } from './skills'
 import { waitForInteraction } from './async'
@@ -99,6 +99,27 @@ function saveWindowBounds(window: BrowserWindow): void {
   } catch {
     // Window geometry is a convenience; never block closing the app on it.
   }
+}
+
+const MAX_EXPORT_IMAGE_BYTES = 120 * 1024 * 1024
+
+function decodeExportPng(dataUrl: unknown): Buffer {
+  if (typeof dataUrl !== 'string') throw new Error('图片数据无效')
+  const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl)
+  if (!match) throw new Error('只支持 PNG 图片')
+  const bytes = Buffer.from(match[1], 'base64')
+  if (bytes.length < 8 || bytes.length > MAX_EXPORT_IMAGE_BYTES) throw new Error('图片过大或为空')
+  if (bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') throw new Error('PNG 数据无效')
+  return bytes
+}
+
+function exportImageFilename(input: unknown): string {
+  const cleaned = String(input ?? 'Aster-对话.png')
+    .replace(/[\x00-\x1f\x7f/\\:]/g, '-')
+    .replace(/\.png$/i, '')
+    .trim()
+    .slice(0, 120)
+  return `${cleaned || 'Aster-对话'}.png`
 }
 
 function createWindow(): void {
@@ -340,6 +361,18 @@ function registerIpc(): void {
     const result = await dialog.showSaveDialog({ title: '保存产物', defaultPath: artifact.filename ? path.basename(artifact.filename) : `${title}.${extension}` })
     if (result.canceled || !result.filePath) return null
     fs.writeFileSync(result.filePath, artifact.content, 'utf8')
+    return result.filePath
+  })
+
+  ipcMain.handle('app:exportImage', async (_event, request: ExportImageRequest) => {
+    const bytes = decodeExportPng(request?.dataUrl)
+    const result = await dialog.showSaveDialog({
+      title: '导出对话图片',
+      defaultPath: exportImageFilename(request?.filename),
+      filters: [{ name: 'PNG 图片', extensions: ['png'] }],
+    })
+    if (result.canceled || !result.filePath) return null
+    fs.writeFileSync(result.filePath, bytes)
     return result.filePath
   })
 }

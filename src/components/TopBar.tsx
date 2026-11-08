@@ -1,4 +1,4 @@
-import { ImagePlus, PanelLeft, Pin, Plus, Settings } from 'lucide-react'
+import { ImageDown, ImagePlus, PanelLeft, Pin, Plus, Settings } from 'lucide-react'
 import { IconButton } from '@/components/ui/IconButton'
 import { useAppStore, activeConversation, activeProfile } from '@/state/store'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,7 @@ export function TopBar() {
   const createConversation = useAppStore(state => state.createConversation)
   const openSettings = useAppStore(state => state.openSettings)
   const openImage = useAppStore(state => state.openImage)
+  const openImageExport = useAppStore(state => state.openImageExport)
   const togglePin = useAppStore(state => state.togglePin)
 
   const streamingHere = Boolean(activeRequest && conversation && activeRequest.conversationId === conversation.id)
@@ -63,6 +64,9 @@ export function TopBar() {
             <Pin size={13} />
           </IconButton>
         )}
+        <IconButton size="sm" onClick={() => openImageExport()} title="导出对话为图片">
+          <ImageDown size={14} />
+        </IconButton>
         <IconButton size="sm" onClick={openImage} title="生成图片">
           <ImagePlus size={14} />
         </IconButton>

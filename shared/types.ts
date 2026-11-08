@@ -278,6 +278,12 @@ export interface SaveAttachmentInput {
   height?: number
 }
 
+export interface ExportImageRequest {
+  /** `data:image/png;base64,...` produced by the local renderer. */
+  dataUrl: string
+  filename: string
+}
+
 export interface AttachmentResult {
   attachment: Attachment
 }
@@ -338,5 +344,6 @@ export interface AsterApi {
     openDataDir(): Promise<void>
     showItemInFolder(path: string): Promise<void>
     exportArtifact(artifact: ArtifactItem): Promise<string | null>
+    exportImage(request: ExportImageRequest): Promise<string | null>
   }
 }

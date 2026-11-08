@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { SettingsDialog } from '@/components/SettingsDialog'
 import { UsageDialog } from '@/components/UsageDialog'
 import { ImageDialog } from '@/components/ImageDialog'
+import { ImageExportDialog } from '@/components/ImageExportDialog'
 import { Toast } from '@/components/ui/Toast'
 import { LoadingScreen } from '@/components/ui/Loading'
 import { AsterMark } from '@/components/AsterMark'
@@ -135,6 +136,7 @@ function AppShell() {
       <SettingsDialog />
       <UsageDialog />
       <ImageDialog />
+      <ImageExportDialog />
       <Toast />
     </div>
   )

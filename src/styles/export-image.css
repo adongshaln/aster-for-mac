@@ -1,0 +1,538 @@
+/* Local, template-driven conversation image. No theme variables so the
+   captured PNG is identical in light and dark app themes. */
+.aster-export {
+  width: 1080px;
+  box-sizing: border-box;
+  padding: 72px 80px 54px;
+  background: var(--ex-bg);
+  color: var(--ex-text);
+  font-family: var(--ex-body-font);
+  font-size: var(--ex-body-size);
+  line-height: var(--ex-leading);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.aster-export *,
+.aster-export *::before,
+.aster-export *::after {
+  box-sizing: border-box;
+}
+
+.aster-export__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.aster-export__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.aster-export__mark {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  color: var(--ex-accent);
+}
+
+.aster-export__wordmark {
+  font-family: var(--ex-heading-font);
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.aster-export__kind {
+  padding-left: 12px;
+  margin-left: 2px;
+  border-left: 1px solid var(--ex-border);
+  color: var(--ex-muted);
+  font-family: var(--ex-body-font);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+.aster-export__meta {
+  flex: none;
+  color: var(--ex-muted);
+  font-family: var(--ex-body-font);
+  font-size: 12.5px;
+  line-height: 1.75;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.aster-export__title {
+  max-width: 900px;
+  margin: 46px 0 10px;
+  font-family: var(--ex-heading-font);
+  font-size: 43px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.aster-export__subtitle {
+  color: var(--ex-muted);
+  font-family: var(--ex-body-font);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.aster-export__rule {
+  height: 1px;
+  margin: 32px 0 4px;
+  background: var(--ex-border);
+}
+
+.aster-export__round {
+  padding: 30px 0 34px;
+  border-bottom: 1px solid var(--ex-border);
+}
+
+.aster-export__round:last-of-type {
+  border-bottom: none;
+}
+
+.aster-export__label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: var(--ex-muted);
+  font-family: var(--ex-body-font);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.aster-export__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--ex-border);
+  border-radius: 999px;
+  background: var(--ex-question-bg);
+  color: var(--ex-text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.aster-export__badge--assistant {
+  border-color: color-mix(in srgb, var(--ex-accent) 35%, var(--ex-border));
+  color: var(--ex-accent);
+}
+
+.aster-export__time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.aster-export__question {
+  padding: 18px 22px;
+  border-left: 3px solid var(--ex-accent);
+  border-radius: 0 12px 12px 0;
+  background: var(--ex-question-bg);
+  font-size: calc(var(--ex-body-size) + 1px);
+  line-height: 1.72;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.aster-export__answer {
+  margin-top: 22px;
+}
+
+.aster-export__answer + .aster-export__answer {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--ex-border);
+}
+
+.aster-export__reasoning {
+  margin: 4px 0 18px;
+  padding: 14px 18px;
+  border: 1px dashed var(--ex-border);
+  border-radius: 10px;
+  background: var(--ex-quote-bg);
+  color: var(--ex-muted);
+  font-family: var(--ex-body-font);
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.aster-export__reasoning-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ex-accent);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.aster-export__status {
+  margin-top: 10px;
+  color: var(--ex-muted);
+  font-family: var(--ex-body-font);
+  font-size: 12px;
+}
+
+.aster-export__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.aster-export__attachment {
+  position: relative;
+  max-width: 300px;
+  overflow: hidden;
+  border: 1px solid var(--ex-border);
+  border-radius: 11px;
+  background: var(--ex-question-bg);
+}
+
+.aster-export__attachment img {
+  display: block;
+  max-width: 300px;
+  max-height: 240px;
+  object-fit: cover;
+}
+
+.aster-export__attachment--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height: 96px;
+  color: var(--ex-muted);
+  font-size: 12px;
+}
+
+.aster-export__citations {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ex-border);
+}
+
+.aster-export__citations-title {
+  margin-bottom: 8px;
+  color: var(--ex-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.aster-export__citation {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0;
+  color: var(--ex-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.aster-export__citation-index {
+  flex: none;
+  width: 16px;
+  color: var(--ex-accent);
+  font-family: var(--ex-mono-font);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.aster-export__citation-title {
+  color: var(--ex-text);
+  overflow-wrap: anywhere;
+}
+
+.aster-export__citation-host {
+  flex: none;
+  opacity: 0.75;
+}
+
+.aster-export__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 42px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ex-border);
+  color: var(--ex-muted);
+  font-family: var(--ex-body-font);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.aster-export__footer-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ex-accent);
+  font-weight: 600;
+}
+
+/* Markdown body */
+.aster-export .md-body {
+  color: var(--ex-text);
+  font-family: var(--ex-body-font);
+  font-size: var(--ex-body-size);
+  line-height: var(--ex-leading);
+  overflow-wrap: anywhere;
+}
+
+.aster-export .md-body > :first-child {
+  margin-top: 0 !important;
+}
+
+.aster-export .md-body > :last-child {
+  margin-bottom: 0 !important;
+}
+
+.aster-export .md-body p {
+  margin: 0.68em 0;
+}
+
+.aster-export .md-body h1,
+.aster-export .md-body h2,
+.aster-export .md-body h3,
+.aster-export .md-body h4 {
+  margin: 1.25em 0 0.5em;
+  font-family: var(--ex-heading-font);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+.aster-export .md-body h1 {
+  font-size: 27px;
+}
+
+.aster-export .md-body h2 {
+  font-size: 23px;
+}
+
+.aster-export .md-body h3 {
+  font-size: 20px;
+}
+
+.aster-export .md-body h4 {
+  font-size: 18px;
+}
+
+.aster-export .md-body ul,
+.aster-export .md-body ol {
+  margin: 0.68em 0;
+  padding-left: 1.45em;
+}
+
+.aster-export .md-body ul {
+  list-style: disc outside;
+}
+
+.aster-export .md-body ol {
+  list-style: decimal outside;
+}
+
+.aster-export .md-body li {
+  margin: 0.2em 0;
+}
+
+.aster-export .md-body li > p {
+  margin: 0.18em 0;
+}
+
+.aster-export .md-body li::marker {
+  color: var(--ex-muted);
+}
+
+.aster-export .md-body blockquote {
+  margin: 0.9em 0;
+  padding: 0.7em 1.05em;
+  border-left: 3px solid var(--ex-accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--ex-quote-bg);
+  color: var(--ex-muted);
+}
+
+.aster-export .md-body blockquote > :first-child {
+  margin-top: 0;
+}
+
+.aster-export .md-body blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.aster-export .md-body strong {
+  font-weight: 650;
+}
+
+.aster-export .md-body em {
+  font-style: italic;
+}
+
+.aster-export .md-body del {
+  opacity: 0.7;
+}
+
+.aster-export .md-body a {
+  color: var(--ex-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.aster-export .md-body hr {
+  margin: 1.3em 0;
+  border: none;
+  border-top: 1px solid var(--ex-border);
+}
+
+.aster-export .md-body :not(pre) > code {
+  padding: 0.12em 0.34em;
+  border-radius: 4px;
+  background: var(--ex-code-bg);
+  color: var(--ex-code-text);
+  font-family: var(--ex-mono-font);
+  font-size: 0.86em;
+}
+
+.aster-export .md-body pre {
+  margin: 0.95em 0;
+  padding: 15px 18px;
+  overflow: visible;
+  border: 1px solid var(--ex-border);
+  border-radius: 10px;
+  background: var(--ex-code-bg);
+  color: var(--ex-code-text);
+  font-family: var(--ex-mono-font);
+  font-size: 13.5px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.aster-export .md-body pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  white-space: inherit;
+}
+
+.aster-export .md-body .ex-code {
+  margin: 0.95em 0;
+  border: 1px solid var(--ex-border);
+  border-radius: 10px;
+  background: var(--ex-code-bg);
+  overflow: hidden;
+}
+
+.aster-export .md-body .ex-code__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--ex-border);
+  color: var(--ex-muted);
+  font-family: var(--ex-mono-font);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aster-export .md-body .ex-code pre {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.aster-export .md-body table {
+  width: 100%;
+  margin: 1em 0;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-family: var(--ex-body-font);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.aster-export .md-body th,
+.aster-export .md-body td {
+  padding: 8px 10px;
+  border: 1px solid var(--ex-border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.aster-export .md-body th {
+  background: var(--ex-question-bg);
+  font-weight: 600;
+}
+
+.aster-export .md-body input[type='checkbox'] {
+  width: 13px;
+  height: 13px;
+  margin: 0 5px 0 0;
+  accent-color: var(--ex-accent);
+  vertical-align: -2px;
+}
+
+.aster-export .md-body .task-list-item {
+  list-style: none;
+  margin-left: -1.2em;
+}
+
+.aster-export .md-body .ex-link {
+  color: var(--ex-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.aster-export .md-body .ex-image-placeholder {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid var(--ex-border);
+  border-radius: 4px;
+  background: var(--ex-quote-bg);
+  color: var(--ex-muted);
+  font-size: 0.78em;
+  line-height: 1.5;
+}
+
+.aster-export .md-body .ex-checkbox {
+  display: inline-flex;
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: 0.35em;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  border: 1px solid var(--ex-border);
+  color: var(--ex-accent);
+  font-family: var(--ex-mono-font);
+  font-size: 0.72em;
+  vertical-align: -0.1em;
+}

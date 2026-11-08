@@ -62,6 +62,8 @@ interface AppState {
   settingsSection: SettingsSection
   usageOpen: boolean
   imageOpen: boolean
+  imageExportOpen: boolean
+  imageExportMessageId: string | null
   sidebarCollapsed: boolean
   windowFullscreen: boolean
   appInfo: AppInfo | null
@@ -111,6 +113,8 @@ interface AppState {
   closeUsage(): void
   openImage(): void
   closeImage(): void
+  openImageExport(messageId?: string): void
+  closeImageExport(): void
   generateImage(prompt: string, model: string, size: string): Promise<number>
   toggleSidebar(): void
   focusSearch(): void
@@ -503,6 +507,8 @@ export const useAppStore = create<AppState>((set, get) => {
     settingsSection: 'general',
     usageOpen: false,
     imageOpen: false,
+    imageExportOpen: false,
+    imageExportMessageId: null,
     sidebarCollapsed: false,
     windowFullscreen: false,
     appInfo: null,
@@ -972,12 +978,14 @@ export const useAppStore = create<AppState>((set, get) => {
       })
     },
 
-    openSettings: section => set({ settingsOpen: true, settingsSection: section ?? 'general', usageOpen: false, imageOpen: false }),
+    openSettings: section => set({ settingsOpen: true, settingsSection: section ?? 'general', usageOpen: false, imageOpen: false, imageExportOpen: false, imageExportMessageId: null }),
     closeSettings: () => set({ settingsOpen: false }),
-    openUsage: () => set({ usageOpen: true, settingsOpen: false, imageOpen: false }),
+    openUsage: () => set({ usageOpen: true, settingsOpen: false, imageOpen: false, imageExportOpen: false, imageExportMessageId: null }),
     closeUsage: () => set({ usageOpen: false }),
-    openImage: () => set({ imageOpen: true, settingsOpen: false, usageOpen: false }),
+    openImage: () => set({ imageOpen: true, settingsOpen: false, usageOpen: false, imageExportOpen: false, imageExportMessageId: null }),
     closeImage: () => set({ imageOpen: false }),
+    openImageExport: messageId => set({ imageExportOpen: true, imageExportMessageId: messageId ?? null, settingsOpen: false, usageOpen: false, imageOpen: false }),
+    closeImageExport: () => set({ imageExportOpen: false, imageExportMessageId: null }),
 
     generateImage: async (prompt, model, size) => {
       const state = get()

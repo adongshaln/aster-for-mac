@@ -11,6 +11,7 @@ import {
   ExternalLink,
   FileCode2,
   Globe,
+  ImageDown,
   Loader2,
   Quote,
   RefreshCw,
@@ -111,6 +112,7 @@ function AssistantMessage({
   const continueLast = useAppStore(state => state.continueLast)
   const setComposerQuote = useAppStore(state => state.setComposerQuote)
   const setActiveArtifact = useAppStore(state => state.setActiveArtifact)
+  const openImageExport = useAppStore(state => state.openImageExport)
   const settings = useAppStore(state => state.config?.settings)
   const [copied, setCopied] = useState(false)
   const [usageOpen, setUsageOpen] = useState(false)
@@ -294,6 +296,17 @@ function AssistantMessage({
               >
                 <CornerDownRight size={11} />
                 继续
+              </button>
+            )}
+            {message.content && (
+              <button
+                type="button"
+                onClick={() => openImageExport(message.id)}
+                className="flex h-6 items-center gap-1 rounded px-1.5 transition-colors hover:bg-[var(--cds-fill-ghost-hover)] hover:text-[var(--cds-text-primary)]"
+                title="导出此轮为图片"
+              >
+                <ImageDown size={11} />
+                导出
               </button>
             )}
             {message.content && (
